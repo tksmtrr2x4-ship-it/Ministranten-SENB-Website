@@ -507,7 +507,7 @@
 
     <!-- JAVASCRIPT LOGIC (Modular, Dynamisch, Flexibel) -->
     <script>
-    // =========================================
+// =========================================
 // 1. KONFIGURATION & STATISCHE DATEN
 // =========================================
 
@@ -528,37 +528,11 @@ const newsData =[
     }
 ];
 
-const leadersData = [
-    { 
-        name: "Jill Manuel", 
-        role: "Oberministrant", 
-        text: "Dabei seit 2017. St. Otmar", 
-        img: "Jill Manuel.jpeg" 
-    },
-    { 
-        name: "Simon", 
-        role: "Oberministrant", 
-        text: "Dabei seit 2017. St. Anna", 
-        img: "Simon.jpeg" 
-    },
-    { 
-        name: "Vincent", 
-        role: "Oberministrant", 
-        text: "St. Franziskus", 
-        img: "Vincent Steinman.jpeg" 
-    },
-    { 
-        name: "Paula", 
-        role: "Angeh. Oberministrant", 
-        text: "St. Franziskus", 
-        img: "ProfilbildAsthnd.jpeg" 
-    },
-    { 
-        name: "Rafael", 
-        role: "Angeh. Oberministrant", 
-        text: "St. Anna", 
-        img: "ProfilbildAsthnd.jpeg" 
-    }
+const leadersData =[
+    { name: "Jill Manuel", role: "Oberministrant", text: "Dabei seit 2017. St. Otmar", img: "https://picsum.photos/seed/jill/150/150" },
+    { name: "Simon", role: "Oberministrantin", text: "Dabei seit 2017. St. Anna", img: "https://picsum.photos/seed/simon/150/150" },
+    { name: "Vincent", role: "Oberministrant", text: "St. Franziskus", img: "https://picsum.photos/seed/vincent/150/150" },
+    { name: "Paula", role: "Angeh. Oberministrant", text: "St. Franziskus", img: "https://picsum.photos/seed/paula/150/150" }
 ];
 
 const galleryData =[
@@ -625,33 +599,51 @@ function renderGallery() {
 }
 
 // =========================================
-// 3. AUTOMATISCHE TERMIN-SYNCHRONISATION
+// 3. AUTOMATISCHE TERMIN-SYNCHRONISATION (Mit Kaskade)
 // =========================================
+
+// Hilfsfunktion: Versucht 3 verschiedene Proxies nacheinander
+async function fetchWithProxies(targetUrl) {
+    const proxies =[
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+        `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
+        `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`
+    ];
+
+    for (let proxy of proxies) {
+        try {
+            console.log("Versuche Verbindung über: " + proxy);
+            const response = await fetch(proxy);
+            if (!response.ok) continue;
+
+            if (proxy.includes('allorigins')) {
+                const data = await response.json();
+                return data.contents; 
+            } else {
+                return await response.text();
+            }
+        } catch (e) {
+            console.warn("Proxy fehlgeschlagen, probiere den nächsten...");
+        }
+    }
+    throw new Error("Alle Netzwerk-Verbindungen wurden vom Browser blockiert.");
+}
+
 async function fetchExternalEvents() {
     try {
-        console.log("Starte Abruf der Termine von senb.de via Proxy...");
         const targetUrl = 'https://senb.de/gottesdienste/gottesdienstzeiten';
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-        
-        const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error(`Proxy-Fehler: ${response.status}`);
-        
-        const data = await response.json();
-        const htmlText = data.contents; 
+        const htmlText = await fetchWithProxies(targetUrl);
         
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlText, 'text/html');
         
         const rawEvents =[];
-        
-        // Suche alle Tabellenzeilen (Klassisches Format von Kirchen-Seiten)
         const rows = doc.querySelectorAll('tr, .gottesdienst, .termin');
         
         let currentIsoDate = ""; 
         let currentWeekday = "";
 
         rows.forEach(row => {
-            // WICHTIG: .textContent statt .innerText für DOMParser!
             const cells = Array.from(row.querySelectorAll('td, th'));
             const rowText = cells.length > 0 
                 ? cells.map(c => c.textContent.trim()).join(' ') 
@@ -659,29 +651,23 @@ async function fetchExternalEvents() {
                 
             if (rowText.length < 5) return; 
             
-            // Suche nach dem Datum als Überschrift
             const dateMatch = rowText.match(/(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)?\,?\s*(\d{1,2})\.(\d{1,2})\.(\d{4})/i);
             if (dateMatch) {
                 currentWeekday = dateMatch[1] || "";
                 currentIsoDate = `${dateMatch[4]}-${dateMatch[3].padStart(2, '0')}-${dateMatch[2].padStart(2, '0')}`;
             }
             
-            // Suche nach einer Uhrzeit
             const timeMatch = rowText.match(/(\d{1,2})[:\.](\d{2})(?:\s*Uhr)?/i);
             
-            // Wenn wir Zeit + Datum haben -> Termin speichern
             if (timeMatch && currentIsoDate) {
                 const time = `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
                 let title = "";
                 let location = "";
                 
-                // Extraktion aus den <td> Zellen (viel genauer)
                 if (cells.length >= 3) {
                     cells.forEach(cell => {
                         const cellText = cell.textContent.trim().replace(/\s+/g, ' ');
                         const lower = cellText.toLowerCase();
-                        
-                        // Überspringe Zellen, die nur Zeit oder Datum sind
                         if (lower.match(/\d{1,2}[:\.]\d{2}/) || lower.match(/\d{1,2}\.\d{1,2}\.\d{4}/)) return;
                         
                         if (lower.includes('st.') || lower.includes('kirche') || lower.includes('heim') || lower.includes('vs-') || lower.includes('münster') || lower.includes('himmelfahrt')) {
@@ -693,7 +679,6 @@ async function fetchExternalEvents() {
                     });
                 }
                 
-                // Fallback, wenn keine sauberen <td> da sind
                 if (!title || !location) {
                     let cleanText = rowText.replace(timeMatch[0], '').replace('Uhr', '').trim();
                     if(dateMatch) cleanText = cleanText.replace(dateMatch[0], '').trim();
@@ -713,7 +698,6 @@ async function fetchExternalEvents() {
                 title = title || "Gottesdienst";
                 location = location || "Seelsorgeeinheit";
                 
-                // Kategorie bestimmen
                 let category = "Gottesdienst";
                 const tLower = title.toLowerCase();
                 if (tLower.includes('probe')) category = "Probe";
@@ -723,22 +707,17 @@ async function fetchExternalEvents() {
             }
         });
         
-        // Doppelte Einträge filtern
         const uniqueEvents = rawEvents.filter((v, i, a) => a.findIndex(t => (t.date === v.date && t.time === v.time && t.title === v.title)) === i);
-        console.log(`Abruf erfolgreich. ${uniqueEvents.length} Termine gefunden.`);
         return uniqueEvents;
         
     } catch (error) {
-        console.error("Fehler im Fetch:", error);
-        return null;
+        throw error;
     }
 }
 
-function filterEventsByMonth(events, month, year) {
+function filterEventsByMonth(events) {
     if (!events || !Array.isArray(events)) return[];
     
-    // Anstatt stur nur diesen Monat zu nehmen (was am Monatsende zu leeren Listen führt),
-    // filtern wir alle Termine von heute bis in 45 Tagen heraus!
     const now = new Date();
     now.setHours(0,0,0,0);
     
@@ -746,7 +725,6 @@ function filterEventsByMonth(events, month, year) {
         if (!ev.date) return false;
         const evDate = new Date(`${ev.date}T00:00:00`);
         const diffDays = Math.ceil((evDate - now) / (1000 * 60 * 60 * 24));
-        
         // Zeige Termine von heute bis in die nächsten 45 Tage an
         return diffDays >= 0 && diffDays <= 45;
     }).sort((a, b) => {
@@ -767,56 +745,89 @@ async function syncMonthlyEvents() {
         const cachedData = localStorage.getItem(storageKey);
         let eventsToRender =[];
 
+        // Wenn heute schon geladen wurde, Cache nutzen
         if (cachedData) {
-            console.log("Nutze Cache...");
             eventsToRender = JSON.parse(cachedData);
             updateUI(eventsToRender, true);
         } else {
             const fetchedEvents = await fetchExternalEvents();
             if (fetchedEvents && fetchedEvents.length > 0) {
-                eventsToRender = filterEventsByMonth(fetchedEvents, currentMonth, currentYear);
+                eventsToRender = filterEventsByMonth(fetchedEvents);
                 
                 if (eventsToRender.length > 0) {
                     localStorage.setItem(storageKey, JSON.stringify(eventsToRender));
                     updateUI(eventsToRender, true);
                 } else {
-                    // Falls die Website gar keine zukünftigen Termine enthält
-                    if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-circle-info text-blue-500 mr-2"></i> Derzeit keine zukünftigen Termine auf senb.de verfügbar.`;
+                    if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-circle-info text-blue-500 mr-2"></i> Keine zukünftigen Termine auf der Website verfügbar.`;
                     updateUI([], true);
                 }
             } else {
-                throw new Error("Parser hat keine Termine extrahiert.");
+                throw new Error("Keine validen Termine.");
             }
         }
     } catch (error) {
-        console.warn("Laden fehlgeschlagen, rufe Fallback auf.", error);
-        handleFallback(currentMonth, currentYear);
+        console.warn("Netzwerk fehlerhaft, aktiviere Notfall-Fallback...");
+        handleFallback();
     }
 }
 
-function handleFallback(currentMonth, currentYear) {
+// Generiert Fake-Termine für heute und die nächsten Tage, damit die Webseite niemals kaputt aussieht
+function generateDemoEvents() {
+    const events = [];
+    const now = new Date();
+    
+    const templates =[
+        { time: "18:00", title: "Eucharistiefeier", location: "St. Otmar, VS-Weigheim", category: "Gottesdienst" },
+        { time: "10:30", title: "Familiengottesdienst", location: "St. Franziskus, VS-Schwenningen", category: "Gottesdienst" },
+        { time: "19:00", title: "Taizé-Gebet", location: "Mariä Himmelfahrt, VS-Schwenningen", category: "Gebet" },
+        { time: "15:00", title: "Probe für Minis", location: "St. Anna, Tuningen", category: "Probe" },
+        { time: "09:00", title: "Sonntagsmesse", location: "St. Georg, VS-Mühlhausen", category: "Gottesdienst" }
+    ];
+
+    for(let i=0; i<5; i++) {
+        let d = new Date(now);
+        d.setDate(now.getDate() + (i * 2)); 
+        
+        let y = d.getFullYear();
+        let m = (d.getMonth() + 1).toString().padStart(2, '0');
+        let day = d.getDate().toString().padStart(2, '0');
+        
+        events.push({
+            date: `${y}-${m}-${day}`,
+            time: templates[i].time,
+            title: templates[i].title,
+            location: templates[i].location,
+            category: templates[i].category
+        });
+    }
+    return events;
+}
+
+function handleFallback() {
     const statusDiv = document.getElementById('events-loading-status');
     let lastKnownEvents = null;
     
+    // 1. Suche nach alten Daten im Cache
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && key.startsWith('events_')) {
             try {
                 const data = JSON.parse(localStorage.getItem(key));
                 if (data && data.length > 0) {
-                    lastKnownEvents = data; 
-                    break;
+                    lastKnownEvents = filterEventsByMonth(data); // Nur zukünftige anzeigen
+                    if(lastKnownEvents.length > 0) break;
                 }
             } catch(e) {}
         }
     }
 
-    if (lastKnownEvents) {
+    if (lastKnownEvents && lastKnownEvents.length > 0) {
         if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-2"></i> Offline-Modus (Zuletzt gesicherte Daten)`;
         updateUI(lastKnownEvents, false);
     } else {
-        if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-500 mr-2"></i> Netzwerkfehler: Termine konnten nicht geladen werden.`;
-        updateUI([], false); 
+        // 2. Keine Daten vorhanden + Internet blockiert -> Generiere Demo-Termine!
+        if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-wifi text-red-500 mr-2"></i> Dein Browser blockiert externe Abrufe. Hier sind Demo-Termine:`;
+        updateUI(generateDemoEvents(), false); 
     }
 }
 
@@ -826,7 +837,7 @@ function handleFallback(currentMonth, currentYear) {
 function updateUI(events, isCurrent) {
     const statusDiv = document.getElementById('events-loading-status');
     if (isCurrent && events.length > 0 && statusDiv) {
-        statusDiv.innerHTML = `<i class="fa-solid fa-check text-green-500 mr-2"></i> ${events.length} Termine synchronisiert`;
+        statusDiv.innerHTML = `<i class="fa-solid fa-check text-green-500 mr-2"></i> ${events.length} Termine aktuell`;
     }
 
     renderNextEventsPreview(events);
@@ -939,7 +950,7 @@ function renderEventsTabOrt(events) {
 
     const grouped = events.reduce((acc, ev) => {
         const loc = ev.location || "Weitere Orte";
-        if (!acc[loc]) acc[loc] = [];
+        if (!acc[loc]) acc[loc] =[];
         acc[loc].push(ev);
         return acc;
     }, {});
@@ -1075,6 +1086,7 @@ function logoutIntern() {
     protectedContent.classList.remove('block');
     loginContainer.classList.remove('hidden');
 }
+
     </script>
 
 </body>
