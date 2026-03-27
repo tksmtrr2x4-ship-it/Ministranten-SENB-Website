@@ -507,6 +507,19 @@
 
     <!-- JAVASCRIPT LOGIC (Modular, Dynamisch, Flexibel) -->
     <script>
+/*
+  ANALYSE-PROTOKOLL:
+  1. Ursache für fehlende Termine (z.B. Proben): 
+     - Der vorherige Parser hat nach hartcodierten Schlüsselwörtern für Orte gesucht. Wenn eine Probe im "Gemeindehaus" stattfand, wurde der Termin weggeworfen.
+     - HTML-Zeilenumbrüche (<br>) haben Wörter verschmolzen, wodurch Titel unleserlich wurden.
+  
+  2. Lösung & Anpassung:
+     - Die "Fake-KI" wurde komplett entfernt. Wir arbeiten nur noch mit echten Livedaten.
+     - Tabellen-Logik: Der Parser liest nun strikt das Raster der Website (Spalte 1 = Zeit, Spalte 2 = Ort, Spalte 3+ = Titel).
+     - Dynamische Orte: JEDER gefundene Ort generiert vollautomatisch eine eigene Karte im Tab "Nach Ort". Keine Orte werden mehr ignoriert.
+     - Exakte Kategorisierung: "Probe", "Beichtgelegenheit", "Taizé", "Jugendkreuzweg" etc. werden farblich differenziert.
+*/
+
 // =========================================
 // 1. KONFIGURATION & STATISCHE DATEN
 // =========================================
@@ -549,10 +562,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderNews();
     renderLeaders();
     renderGallery();
-    
-    // Starte den autonomen KI-Agenten für den Kalender
-    const agent = new AutonomousGottesdienstKI();
-    agent.run();
+    syncLiveEvents();
 });
 
 function initHero() {
@@ -600,211 +610,183 @@ function renderGallery() {
 }
 
 // =========================================
-// 3. AUTONOME KI-LOGIK FÜR TERMINE
+// 3. ECHTDATEN-ABRUF & PARSING
 // =========================================
-class AutonomousGottesdienstKI {
-    constructor() {
-        this.targetUrl = 'https://senb.de/gottesdienste/gottesdienstzeiten';
-        
-        // ECHTER DATENSATZ (Gottesdienste Ende März / Ostern 2026 der SE Neckar-Baar)
-        // Beinhaltet garantiert ALLE 5 Kirchen und spezifizierte Gottesdienst-Arten!
-        this.realVerifiedData =[
-            { date: "2026-03-26", time: "18:00", title: "Eucharistiefeier", location: "St. Otmar, VS-Weigheim", category: "Gottesdienst" },
-            { date: "2026-03-27", time: "10:30", title: "Eucharistiefeier mit Krankensalbung", location: "Franziskusheim, VS-Schwenningen", category: "Gottesdienst" },
-            { date: "2026-03-27", time: "14:30", title: "Rosenkranz", location: "Mariä Himmelfahrt, VS-Schwenningen", category: "Gebet" },
-            { date: "2026-03-27", time: "15:00", title: "Eucharistiefeier", location: "Mariä Himmelfahrt, VS-Schwenningen", category: "Gottesdienst" },
-            { date: "2026-03-27", time: "15:00", title: "Probe für Palmsonntag", location: "St. Franziskus, VS-Schwenningen", category: "Miniprobe" },
-            { date: "2026-03-27", time: "15:45", title: "Beichtgelegenheit", location: "Mariä Himmelfahrt, VS-Schwenningen", category: "Beichte" },
-            { date: "2026-03-27", time: "17:30", title: "Probe für Palmsonntag", location: "Mariä Himmelfahrt, VS-Schwenningen", category: "Miniprobe" },
-            { date: "2026-03-27", time: "19:00", title: "Gottesdienst der rum-orth. Gemeinde", location: "Mariä Himmelfahrt, VS-Schwenningen", category: "Gastgemeinde" },
-            { date: "2026-03-27", time: "19:00", title: "Taizé-Gebet", location: "St. Franziskus, VS-Schwenningen", category: "Gebet" },
-            { date: "2026-03-27", time: "19:00", title: "Jugendkreuzweg", location: "St. Fidelis (Villingen)", category: "Aktion" },
-            { date: "2026-03-28", time: "11:00", title: "Probe für Palmsonntag", location: "St. Anna, Tuningen", category: "Miniprobe" },
-            { date: "2026-03-28", time: "14:30", title: "Probe für Palmsonntag", location: "St. Otmar, VS-Weigheim", category: "Miniprobe" },
-            { date: "2026-03-28", time: "17:00", title: "Familiengottesdienst zum Palmsonntag", location: "St. Georg, VS-Mühlhausen", category: "Gottesdienst" },
-            { date: "2026-03-28", time: "17:00", title: "Familiengottesdienst zum Palmsonntag", location: "St. Anna, Tuningen", category: "Gottesdienst" },
-            { date: "2026-03-29", time: "09:00", title: "Familiengottesdienst zum Palmsonntag", location: "Mariä Himmelfahrt, VS-Schwenningen", category: "Gottesdienst" },
-            { date: "2026-03-29", time: "09:00", title: "Beichtgelegenheit (kroatisch)", location: "St. Franziskus, VS-Schwenningen", category: "Beichte" },
-            { date: "2026-03-29", time: "09:00", title: "Familiengottesdienst zum Palmsonntag", location: "St. Otmar, VS-Weigheim", category: "Gottesdienst" },
-            { date: "2026-03-29", time: "09:30", title: "Eucharistiefeier (kroatisch)", location: "St. Franziskus, VS-Schwenningen", category: "Gottesdienst" },
-            { date: "2026-03-29", time: "11:00", title: "Familiengottesdienst zum Palmsonntag", location: "St. Franziskus, VS-Schwenningen", category: "Gottesdienst" },
-            { date: "2026-03-29", time: "11:00", title: "Rum-orth. Gottesdienst", location: "Mariä Himmelfahrt, VS-Schwenningen", category: "Gastgemeinde" },
-            { date: "2026-03-29", time: "17:00", title: "Ukrainisch griech.-kath. Gottesdienst", location: "Mariä Himmelfahrt, VS-Schwenningen", category: "Gastgemeinde" },
-            { date: "2026-03-31", time: "18:00", title: "Eucharistiefeier mit Anbetung", location: "St. Franziskus, VS-Schwenningen", category: "Gottesdienst" },
-            { date: "2026-03-31", time: "19:15", title: "Beichtgelegenheit", location: "St. Franziskus, VS-Schwenningen", category: "Beichte" }
-        ];
-    }
 
-    async run() {
-        const statusDiv = document.getElementById('events-loading-status');
-        if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-robot text-churchGold mr-2 fa-bounce"></i> KI-Agent prüft aktuellen Datenbestand...`;
+// Proxies zur Umgehung von CORS-Blockaden des Browsers
+async function fetchWithProxies(targetUrl) {
+    const proxies =[
+        `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
+        `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`
+    ];
 
-        // SCHRITT 1 & 2: Bestand laden und prüfen
-        let currentEvents = this.loadCurrentEvents();
-        let futureEvents = this.filterFuture(currentEvents);
-
-        // SCHRITT 3: Autonome Entscheidung der KI (Wenn Datenlücke festgestellt wird)
-        if (futureEvents.length <= 3) {
-            console.warn(`[KI-Agent] KRITISCHER BESTAND ERKANNT: Nur noch ${futureEvents.length} Termine online.`);
-            if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-satellite-dish text-churchRed mr-2 fa-beat"></i> KI erkennt Kalender-Lücke. Kontaktiere senb.de...`;
-            
-            setTimeout(async () => {
-                await this.executeCrawlAndInject();
-            }, 1000);
-        } else {
-            console.log(`[KI-Agent] Datenbestand ausreichend (${futureEvents.length} Termine).`);
-            updateUI(futureEvents, true, "KI: Datenbestand vollständig.");
-        }
-    }
-
-    loadCurrentEvents() {
-        const cached = localStorage.getItem('senb_ki_events');
-        if (cached) return JSON.parse(cached);
-        // Künstlicher Mangel, falls Cache leer ist, um die KI zum Fetch zu zwingen
-        return[];
-    }
-
-    async executeCrawlAndInject() {
-        const statusDiv = document.getElementById('events-loading-status');
-        
+    for (let proxy of proxies) {
         try {
-            // Live-Abruf (mit Umgehung von CORS-Sperren)
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(this.targetUrl)}`;
-            const response = await fetch(proxyUrl, { cache: "no-store" });
-            
-            if (!response.ok) throw new Error("Netzwerkfehler");
-            
-            const data = await response.json();
-            const parsedEvents = this.parseHtmlToEvents(data.contents);
-            
-            // Wenn die KI erfolgreich geparst hat, überprüfen wir, ob alle Kirchen enthalten sind.
-            // Falls die echte Website Fehler hat, mischt die KI die verifizierten Daten darunter.
-            if (parsedEvents.length > 2) {
-                const combined = this.mergeWithVerifiedData(parsedEvents);
-                this.saveAndRender(combined, "KI: Live-Daten extrahiert & optimiert.");
-            } else {
-                throw new Error("Live-Website enthält nicht genügend Termine.");
-            }
+            const response = await fetch(proxy, { cache: "no-store" });
+            if (!response.ok) continue;
 
-        } catch (error) {
-            // HIER GREIFT DIE KI EIN, WENN DAS NETZWERK ODER DIE SEITE BLOCKIERT IST!
-            console.error(`[KI-Agent] Abruf fehlgeschlagen (${error.message}).`);
-            if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-shield-halved text-blue-500 mr-2"></i> Firewall blockiert Abruf. KI speist verifizierte SE-Echtdaten ein...`;
-            
-            setTimeout(() => {
-                this.saveAndRender(this.realVerifiedData, "KI-Bypass: Komplette Terminliste geladen.");
-            }, 800);
+            if (proxy.includes('allorigins')) {
+                const data = await response.json();
+                return data.contents; 
+            } else {
+                return await response.text();
+            }
+        } catch (e) {
+            continue;
         }
     }
+    throw new Error("Netzwerkverbindung durch Browser blockiert.");
+}
 
-    // Die "kognitive" Parse-Logik
-    parseHtmlToEvents(htmlText) {
+async function syncLiveEvents() {
+    const statusDiv = document.getElementById('events-loading-status');
+    if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Analysiere Live-Termine von senb.de...`;
+
+    try {
+        const targetUrl = 'https://senb.de/gottesdienste/gottesdienstzeiten';
+        const htmlText = await fetchWithProxies(targetUrl);
+        
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlText, 'text/html');
-        const rawEvents =[];
-        const rows = doc.querySelectorAll('tr, .gottesdienst, .termin, .event-item');
         
-        let currentIsoDate = ""; 
+        const rawEvents =[];
+        
+        // Finde alle Zeilen
+        const rows = doc.querySelectorAll('tr, .gottesdienst-row');
+        let currentIsoDate = "";
 
         rows.forEach(row => {
-            const cells = Array.from(row.querySelectorAll('td, th, div'));
-            const rowText = cells.length > 0 ? cells.map(c => c.textContent.trim()).join(' ') : row.textContent.trim();
+            // Extrahieren des Textes. <br> durch Bindestriche ersetzen, damit nichts verschmilzt
+            const cells = Array.from(row.querySelectorAll('td, th'));
+            const getText = (el) => {
+                const clone = el.cloneNode(true);
+                clone.innerHTML = clone.innerHTML.replace(/<br\s*[\/]?>/gi, ' - ');
+                return clone.textContent.replace(/\s+/g, ' ').trim();
+            };
+
+            const rowText = getText(row);
             if (rowText.length < 5) return; 
             
+            // Suche nach Datum (z.B. 26.3.2026 oder 26.03.2026)
             const dateMatch = rowText.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
-            if (dateMatch) {
+            
+            if (dateMatch && !rowText.match(/(\d{1,2})[:\.](\d{2})/)) {
+                // Zeile ist reine Datums-Überschrift
+                currentIsoDate = `${dateMatch[3]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}`;
+                return;
+            } else if (dateMatch && rowText.match(/(\d{1,2})[:\.](\d{2})/)) {
+                // Datum und Zeit in einer Zeile
                 currentIsoDate = `${dateMatch[3]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}`;
             }
-            
+
+            // Suche nach Uhrzeit
             const timeMatch = rowText.match(/(\d{1,2})[:\.](\d{2})(?:\s*Uhr)?/i);
             
             if (timeMatch && currentIsoDate) {
                 const time = `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
-                let title = ""; let location = "";
-                
-                // Intelligente Ortssuche (muss alle 5 Kirchen erkennen können)
-                const locKeywords =['st. franziskus', 'mariä himmelfahrt', 'st. otmar', 'st. anna', 'st. georg', 'fidelis', 'franziskusheim'];
-                locKeywords.forEach(k => {
-                    if(rowText.toLowerCase().includes(k)) {
-                        // Formatieren für die Anzeige
-                        if(k === 'st. franziskus') location = "St. Franziskus, VS-Schwenningen";
-                        else if(k === 'mariä himmelfahrt') location = "Mariä Himmelfahrt, VS-Schwenningen";
-                        else if(k === 'st. otmar') location = "St. Otmar, VS-Weigheim";
-                        else if(k === 'st. anna') location = "St. Anna, Tuningen";
-                        else if(k === 'st. georg') location = "St. Georg, VS-Mühlhausen";
-                        else location = k.charAt(0).toUpperCase() + k.slice(1);
+                let location = "";
+                let title = "";
+
+                if (cells.length >= 3) {
+                    // Strukturierte Tabelle: Spalte 1 = Zeit, Spalte 2 = Ort, Spalte 3 = Titel
+                    let timeIdx = cells.findIndex(c => getText(c).match(/(\d{1,2})[:\.](\d{2})/));
+                    if (timeIdx === -1) timeIdx = 0;
+                    
+                    if (cells.length > timeIdx + 1) {
+                        location = getText(cells[timeIdx + 1]);
                     }
-                });
+                    if (cells.length > timeIdx + 2) {
+                        // Alles ab Spalte 3 wird zum Titel
+                        title = cells.slice(timeIdx + 2).map(c => getText(c)).filter(t => t).join(' - ');
+                    }
+                } else {
+                    // Fallback, wenn es keine Tabelle ist
+                    let clean = rowText.replace(timeMatch[0], '').trim();
+                    if(dateMatch) clean = clean.replace(dateMatch[0], '').trim();
+                    clean = clean.replace(/^(Uhr|,|-|\s)+/, '').trim();
+                    title = clean;
+                    location = "Seelsorgeeinheit Neckar-Baar"; 
+                }
 
-                // Intelligente Titelsuche (erkennt genaue Bezeichnungen statt pauschal "Gottesdienst")
-                let cleanText = rowText.replace(timeMatch[0], '').replace('Uhr', '').trim();
-                if(dateMatch) cleanText = cleanText.replace(dateMatch[0], '').trim();
+                title = title.replace(/^[-–|,]+/, '').trim();
+                location = location.replace(/^[-–|,]+/, '').trim();
                 
-                // Wir filtern Wochentage und Ortsnamen aus dem String, um den sauberen Titel zu erhalten
-                const cleanupRegex = new RegExp(`(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|,|${location.split(',')[0]}|VS-Schwenningen|VS-Weigheim|Tuningen|VS-Mühlhausen)`, 'gi');
-                title = cleanText.replace(cleanupRegex, '').trim().replace(/^[-–\|]+/, '').trim();
-                
-                if(!title || title.length < 3) title = "Gottesdienst";
-                if(!location) location = "Seelsorgeeinheit";
+                if (!title) title = "Termin / Gottesdienst";
+                if (!location) location = "Seelsorgeeinheit";
 
-                // KATEGORISIERUNG (Hochpräzise)
+                // KATEGORISIERUNG (Hochpräzise anhand des Titels)
                 let category = "Gottesdienst"; 
                 const tLower = title.toLowerCase();
-                
-                if (tLower.includes('probe')) category = "Miniprobe";
+                if (tLower.includes('probe')) category = "Probe";
                 else if (tLower.match(/beicht|versöhnung/)) category = "Beichte";
-                else if (tLower.match(/rosenkranz|gebet|taizé|anbetung/)) category = "Gebet";
-                else if (tLower.includes('kreuzweg')) category = "Aktion";
-                else if (tLower.match(/kroatisch|rum-orth|ukrainisch/)) category = "Gastgemeinde";
-                else if (tLower.match(/familiengottesdienst|eucharistiefeier|wort-gottes/)) category = "Gottesdienst";
+                else if (tLower.match(/rosenkranz|gebet|taizé|anbetung|andacht|vesper|laudes/)) category = "Gebet";
+                else if (tLower.match(/kreuzweg|aktion|ausflug|treffen|sitzung/)) category = "Aktion";
+                else if (tLower.match(/kroatisch|rum-orth|ukrainisch|tamilisch/)) category = "Gastgemeinde";
                 
-                rawEvents.push({ date: currentIsoDate, time: time, title: title, location: location, category: category });
+                rawEvents.push({ date: currentIsoDate, time, title, location, category });
             }
         });
-        return rawEvents.filter((v, i, a) => a.findIndex(t => (t.date === v.date && t.time === v.time && t.title === v.title)) === i);
-    }
 
-    mergeWithVerifiedData(scrapedEvents) {
-        // Die KI mischt die verifizierten Daten (die alle 5 Kirchen garantieren) 
-        // mit den live abgefragten Daten zusammen, falls live etwas übersehen wurde.
-        let merged = [...scrapedEvents];
-        this.realVerifiedData.forEach(verifiedEv => {
-            const exists = merged.find(e => e.date === verifiedEv.date && e.time === verifiedEv.time && e.location === verifiedEv.location);
-            if(!exists) merged.push(verifiedEv);
-        });
-        return merged;
-    }
-
-    filterFuture(events) {
-        if (!events || !Array.isArray(events)) return[];
-        const now = new Date();
-        now.setHours(0,0,0,0);
+        // Doppelte herausfiltern
+        const uniqueEvents = rawEvents.filter((v, i, a) => a.findIndex(t => (t.date === v.date && t.time === v.time && t.title === v.title && t.location === v.location)) === i);
         
-        return events.filter(ev => {
-            if (!ev.date) return false;
-            const evDate = new Date(`${ev.date}T00:00:00`);
-            const diffDays = Math.ceil((evDate - now) / (1000 * 60 * 60 * 24));
-            // Nur Termine von heute bis max. +45 Tage in die Zukunft
-            return diffDays >= 0 && diffDays <= 45;
-        }).sort((a, b) => {
-            return new Date(`${a.date}T${a.time}:00`) - new Date(`${b.date}T${b.time}:00`);
-        });
-    }
+        // Nur anstehende Termine filtern
+        const futureEvents = filterFutureEvents(uniqueEvents);
 
-    saveAndRender(events, successMessage) {
-        const futureEvents = this.filterFuture(events);
-        localStorage.setItem('senb_ki_events', JSON.stringify(futureEvents));
-        updateUI(futureEvents, true, successMessage);
+        if (futureEvents.length > 0) {
+            localStorage.setItem('senb_events_cache', JSON.stringify(futureEvents));
+            updateUI(futureEvents, true);
+        } else {
+            handleFallback();
+        }
+
+    } catch (error) {
+        console.warn("Laden fehlgeschlagen, lade aus Cache.", error);
+        handleFallback();
     }
+}
+
+function filterFutureEvents(events) {
+    if (!events || !Array.isArray(events)) return[];
+    const now = new Date();
+    now.setHours(0,0,0,0);
+    
+    return events.filter(ev => {
+        if (!ev.date) return false;
+        const evDate = new Date(`${ev.date}T00:00:00`);
+        const diffDays = Math.ceil((evDate - now) / (1000 * 60 * 60 * 24));
+        // Zeige alle Termine von heute bis in 60 Tagen an
+        return diffDays >= 0 && diffDays <= 60;
+    }).sort((a, b) => {
+        return new Date(`${a.date}T${a.time}:00`) - new Date(`${b.date}T${b.time}:00`);
+    });
+}
+
+function handleFallback() {
+    const statusDiv = document.getElementById('events-loading-status');
+    const cachedData = localStorage.getItem('senb_events_cache');
+    
+    if (cachedData) {
+        let events = JSON.parse(cachedData);
+        events = filterFutureEvents(events);
+        if (events.length > 0) {
+            if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-2"></i> Offline-Modus (Gespeicherte Termine)`;
+            updateUI(events, false);
+            return;
+        }
+    }
+    
+    if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-500 mr-2"></i> Termine konnten nicht geladen werden.`;
+    updateUI([], false);
 }
 
 // =========================================
 // 4. RENDERING DER TERMINE IM HTML
 // =========================================
-function updateUI(events, isCurrent, customMessage) {
+function updateUI(events, isCurrent) {
     const statusDiv = document.getElementById('events-loading-status');
     if (isCurrent && events.length > 0 && statusDiv) {
-        statusDiv.innerHTML = `<i class="fa-solid fa-check text-green-500 mr-2"></i> ${customMessage}`;
+        statusDiv.innerHTML = `<i class="fa-solid fa-check text-green-500 mr-2"></i> Alle Termine erfolgreich importiert.`;
     }
 
     renderNextEventsPreview(events);
@@ -816,7 +798,6 @@ function renderNextEventsPreview(events) {
     const container = document.getElementById('next-events-container');
     if (!container) return;
 
-    // Startseite zeigt nur maximal 4 Termine an
     const upcomingEvents = events.slice(0, 4); 
 
     if (upcomingEvents.length === 0) {
@@ -829,9 +810,8 @@ function renderNextEventsPreview(events) {
         const day = d.getDate().toString().padStart(2, '0');
         const monthStr = d.toLocaleString('de-DE', { month: 'short' });
         
-        // Farben nach Kategorien
         let borderColor = "border-red-400";
-        if (ev.category === "Miniprobe") borderColor = "border-green-500";
+        if (ev.category === "Probe") borderColor = "border-green-500";
         else if (ev.category === "Beichte") borderColor = "border-purple-500";
         else if (ev.category === "Gebet") borderColor = "border-blue-500";
         else if (ev.category === "Aktion") borderColor = "border-yellow-500";
@@ -872,9 +852,8 @@ function renderEventsTabDatum(events) {
         const niceDate = d.toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
         const eventsHtml = dayEvents.map(ev => {
-            // Farben für die Badges im Kalender
             let badgeClass = "bg-red-100 text-red-800";
-            if (ev.category === "Miniprobe") badgeClass = "bg-green-100 text-green-800";
+            if (ev.category === "Probe") badgeClass = "bg-green-100 text-green-800";
             else if (ev.category === "Beichte") badgeClass = "bg-purple-100 text-purple-800";
             else if (ev.category === "Gebet") badgeClass = "bg-blue-100 text-blue-800";
             else if (ev.category === "Aktion") badgeClass = "bg-yellow-100 text-yellow-800";
@@ -922,6 +901,8 @@ function renderEventsTabOrt(events) {
         return;
     }
 
+    // VOLLAUTOMATISCHE ORT-KARTEN ERSTELLUNG
+    // Gruppiert jeden gefundenen Ort als separaten Array-Eintrag
     const grouped = events.reduce((acc, ev) => {
         const loc = ev.location || "Weitere Orte";
         if (!acc[loc]) acc[loc] = [];
@@ -929,6 +910,7 @@ function renderEventsTabOrt(events) {
         return acc;
     }, {});
 
+    // Mapt durch alle Orte und erstellt für JEDEN dynamisch eine eigene UI-Karte
     container.innerHTML = Object.keys(grouped).sort().map(locName => {
         const locEvents = grouped[locName];
         
@@ -937,7 +919,7 @@ function renderEventsTabOrt(events) {
             const niceDateShort = d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
             
             let borderClass = "border-red-400";
-            if (ev.category === "Miniprobe") borderClass = "border-green-500";
+            if (ev.category === "Probe") borderClass = "border-green-500";
             else if (ev.category === "Beichte") borderClass = "border-purple-500";
             else if (ev.category === "Gebet") borderClass = "border-blue-500";
             else if (ev.category === "Aktion") borderClass = "border-yellow-500";
