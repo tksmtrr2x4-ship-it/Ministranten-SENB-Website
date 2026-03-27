@@ -550,7 +550,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderLeaders();
     renderGallery();
     
-    // Starte den LIVE-Abruf (kein Fallback-Pool mehr)
+    // Starte den 100% frischen Live-Abruf
     fetchAndProcessLiveEvents();
 });
 
@@ -599,192 +599,163 @@ function renderGallery() {
 }
 
 // =========================================
-// 3. 100% LIVE ABRUF & PARSING (Ohne Fallback-Pool)
+// 3. 100% LIVE ABRUF & KI-PARSING
 // =========================================
 
-// Nutzt Proxies, da der Browser einen direkten Fetch auf eine fremde Domain (senb.de) blockieren würde (CORS).
+// Netzwerk-Sperren umgehen: Das Skript rotiert durch Server-Proxies, falls dein Browser blockt
 async function fetchRawHtml(targetUrl) {
     const proxies =[
         `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
-        `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`
+        `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`,
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
     ];
 
     for (let proxy of proxies) {
         try {
-            const response = await fetch(proxy, { cache: "no-store" }); // Immer frisch!
+            const response = await fetch(proxy, { cache: "no-store" });
             if (!response.ok) continue;
 
             if (proxy.includes('allorigins')) {
                 const data = await response.json();
-                return data.contents; 
+                if(data.contents) return data.contents;
             } else {
-                return await response.text();
+                const text = await response.text();
+                if(text) return text;
             }
         } catch (e) {
-            console.warn(`Proxy ${proxy} blockiert/nicht erreichbar.`);
+            console.warn(`Proxy ${proxy} blockiert, versuche nächsten...`);
         }
     }
-    throw new Error("Netzwerkfehler: senb.de (oder die Proxies) konnten nicht erreicht werden.");
+    throw new Error("Sicherheits- oder Netzwerkblockade. senb.de konnte über keinen Proxy erreicht werden.");
 }
 
 async function fetchAndProcessLiveEvents() {
     const statusDiv = document.getElementById('events-loading-status');
-    if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Verbinde mit senb.de und lade Live-Termine...`;
+    if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Umgehe Blockaden und analysiere Live-Termine...`;
 
     try {
         const targetUrl = 'https://senb.de/gottesdienste/gottesdienstzeiten';
         const htmlText = await fetchRawHtml(targetUrl);
         
-        // --- 1. Parsing Prozess ---
-        // Oft formatieren Kirchen-Websites ihre Einträge schlecht mit <br> Tags. 
-        // Wir ersetzen diese durch " | ", um die Texte beim Auslesen nicht zu verschmelzen.
-        const cleanHtml = htmlText.replace(/<br\s*[\/]?>/gi, ' | ').replace(/<\/p>/gi, ' | </p>');
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(cleanHtml, 'text/html');
+        // 1. RADIKALE REINIGUNG: 
+        // Wir wandeln jeden HTML-Block (div, p, br, table) in Zeilenumbrüche um.
+        // Das zerstört das kaputte HTML der Kirchenseite und macht daraus ein sauberes Textdokument.
+        let html = htmlText.replace(/<(div|p|tr|li|ul|table|h[1-6]|br)[^>]*>/gi, '\n');
+        html = html.replace(/<\/(div|p|tr|li|ul|table|h[1-6])>/gi, '\n');
         
-        const rawEvents =[];
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const plainText = doc.body.textContent;
+        const lines = plainText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
         
-        // Suche nach klassischen HTML-Strukturen, die Termine enthalten könnten
-        const rows = doc.querySelectorAll('tr, .gottesdienst, .event-item, li');
-        
-        let currentIsoDate = ""; 
+        let rawEvents =[];
+        let currentDate = null;
+        let currentEvent = null;
 
-        rows.forEach(row => {
-            const cells = Array.from(row.querySelectorAll('td, th, div.col'));
-            
-            // Wenn es eine Tabelle ist (Zellen), Text holen. Wenn nicht, gesamten Zeilentext nehmen.
-            const rowText = cells.length > 0 
-                ? cells.map(c => c.textContent.trim()).join(' | ') 
-                : row.textContent.replace(/\s+/g, ' ').trim();
-                
-            if (rowText.length < 5) return; 
-            
-            // --- 2. Datum Extraktion ---
-            // Format: TT.MM.JJJJ (z.B. 27.03.2026 oder 1.4.2026)
-            const dateMatch = rowText.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
-            if (dateMatch) {
-                // ISO Format erzwingen: YYYY-MM-DD
-                currentIsoDate = `${dateMatch[3]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}`;
+        // 2. TEXT-VISION ALGORITHMUS:
+        // Das Skript liest von oben nach unten wie ein Mensch, statt nach HTML-Tags zu suchen.
+        for (let line of lines) {
+            // Unnötige Filter-Wörter der Webseite überspringen
+            if (line === "suchen" || line.includes("Alle Gottesdienstarten") || line.includes("Alle Gemeinden") || line.includes("Alle Zeiträume") || line.includes("Suche")) continue;
+
+            // Erkennt ein Datum? (z.B. 26.3.2026)
+            let dateMatch = line.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+            if (dateMatch && (line.match(/^(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)/i) || line.length < 30)) {
+                currentDate = `${dateMatch[3]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}`;
+                continue;
             }
-            
-            // --- 3. Zeit Extraktion ---
-            // Format: HH:MM oder HH.MM (z.B. 18:00 oder 9.30)
-            const timeMatch = rowText.match(/(\d{1,2})[:\.](\d{2})(?:\s*Uhr)?/i);
-            
-            if (timeMatch && currentIsoDate) {
-                const time = `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
-                let title = ""; 
-                let location = "";
 
-                // --- 4. Intelligente Ortssuche ---
-                // Scannt den Text nach Hinweisen auf den Ort.
-                const locMap = {
-                    'franziskus': 'St. Franziskus, VS-Schwenningen',
-                    'himmelfahrt': 'Mariä Himmelfahrt, VS-Schwenningen',
-                    'otmar': 'St. Otmar, VS-Weigheim',
-                    'anna': 'St. Anna, Tuningen',
-                    'georg': 'St. Georg, VS-Mühlhausen',
-                    'fidelis': 'St. Fidelis, Villingen',
-                    'franziskusheim': 'Franziskusheim, VS-Schwenningen',
-                    'gemeindehaus': 'Gemeindehaus',
-                    'klinikum': 'Klinikum',
-                    'kroatisch': 'St. Franziskus (Kroat. Mission)'
-                };
-
-                let foundLoc = false;
-                for (const[key, val] of Object.entries(locMap)) {
-                    if (rowText.toLowerCase().includes(key)) {
-                        location = val;
-                        foundLoc = true;
-                        break;
-                    }
+            // Erkennt eine Uhrzeit? (z.B. 18:00 Uhr)
+            let timeMatch = line.match(/^(\d{1,2})[:\.](\d{2})(?:\s*Uhr)?/i);
+            if (timeMatch) {
+                // Sobald eine neue Uhrzeit auftaucht, wird der letzte fertige Termin gespeichert
+                if (currentEvent && currentEvent.title.length > 0) {
+                    rawEvents.push(currentEvent);
                 }
-
-                // --- 5. Titel Extraktion & Bereinigung ---
-                // Wir nehmen den rohen Text und löschen Uhrzeit, Datum und sinnlose Füllwörter
-                let cleanText = rowText.replace(timeMatch[0], '').trim();
-                if(dateMatch) cleanText = cleanText.replace(dateMatch[0], '').trim();
                 
-                // Lösche Wochentage und Orte aus dem String, damit nur das Event (der Titel) übrig bleibt
-                const cleanupRegex = new RegExp(`(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|,|VS-Schwenningen|VS-Weigheim|Tuningen|VS-Mühlhausen|Uhr)`, 'gi');
-                title = cleanText.replace(cleanupRegex, '').replace(/^[-\|\s]+/, '').trim();
+                let timeStr = `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
+                currentEvent = { date: currentDate, time: timeStr, location: "", title:[] };
                 
-                // Falls der Titel den erkannten Ort enthält, entferne diesen ebenfalls
-                if(foundLoc) {
-                    const locParts = location.split(',')[0].toLowerCase(); // z.B. "st. franziskus"
-                    const regexLoc = new RegExp(locParts, 'i');
-                    title = title.replace(regexLoc, '').replace(/^[-\|\s]+/, '').trim();
-                }
-
-                // Letzte Sicherungsnetze für leere Titel oder nicht gefundene Orte
-                if(!title || title.length < 3) title = "Termin / Gottesdienst";
+                // Falls die Kirchenseite Zeit und Ort in EINE Zeile geschrieben hat
+                let rest = line.replace(timeMatch[0], '').trim();
+                if (rest) currentEvent.location = rest;
                 
-                // Fallback-Ort, wenn die LocMap nicht angesprungen ist, aber Tabellenspalten da sind
-                if(!foundLoc) {
-                    if (cells.length >= 3) {
-                        // In vielen Tabellen ist Spalte 2 der Ort
-                        let potLoc = cells[1].textContent.trim();
-                        if(potLoc.length > 2 && potLoc.length < 30) location = potLoc;
-                        else location = "Weitere Orte / Unbekannt";
-                    } else {
-                        location = "Seelsorgeeinheit";
-                    }
-                }
-
-                // --- 6. Hochpräzise Kategorisierung für das Design ---
-                let category = "Gottesdienst"; 
-                const tLower = title.toLowerCase();
-                
-                // Kategorien priorisieren
-                if (tLower.includes('probe')) category = "Miniprobe";
-                else if (tLower.match(/beicht|versöhnung/)) category = "Beichte";
-                else if (tLower.match(/rosenkranz|gebet|taizé|anbetung|andacht|vesper|laudes/)) category = "Gebet";
-                else if (tLower.match(/kreuzweg|ausflug|treffen|sitzung|wanderung/)) category = "Aktion";
-                else if (tLower.match(/kroatisch|rum-orth|ukrainisch|tamilisch/)) category = "Gastgemeinde";
-                else if (tLower.match(/familiengottesdienst|eucharistiefeier|wort-gottes|hochfest|ostern/)) category = "Gottesdienst";
-                
-                rawEvents.push({ date: currentIsoDate, time: time, title: title, location: location, category: category });
+                continue;
             }
-        });
-        
-        // --- 7. Duplikate entfernen (durch unsauberes HTML möglich) ---
-        const uniqueEvents = rawEvents.filter((v, i, a) => 
-            a.findIndex(t => (t.date === v.date && t.time === v.time && t.title === v.title && t.location === v.location)) === i
-        );
 
-        // --- 8. Zeitliche Filterung & Sortierung ---
+            // Alles was NACH einer Uhrzeit steht, muss Ort oder Titel sein
+            if (currentEvent) {
+                if (!currentEvent.location) {
+                    currentEvent.location = line; // 1. Zeile nach der Zeit ist meist der Ort
+                } else {
+                    currentEvent.title.push(line); // Alle folgenden Zeilen sind der Titel
+                }
+            }
+        }
+        
+        // Letzten Termin im Speicher nicht vergessen
+        if (currentEvent && currentEvent.title.length > 0) {
+            rawEvents.push(currentEvent);
+        }
+
+        const finalEvents =[];
         const now = new Date();
         now.setHours(0,0,0,0);
-        
-        const finalEvents = uniqueEvents.filter(ev => {
-            if (!ev.date) return false;
+
+        // 3. KATEGORISIERUNG & BEREINIGUNG
+        rawEvents.forEach(ev => {
+            if(!ev.date) return;
+            
+            ev.title = ev.title.join(' - '); // Füge mehrzeilige Titel zusammen
+            
+            // Wenn der Titel leer blieb, aber der Ort ellenlang ist (Website-Eingabefehler)
+            if (!ev.title && ev.location.length > 30) {
+                const parts = ev.location.split(/(?:,\s*(?=St\.|VS-)| - )/);
+                if(parts.length > 1) {
+                    ev.location = parts[0];
+                    ev.title = parts.slice(1).join(' - ');
+                }
+            }
+
+            if(!ev.location) ev.location = "Ort in der Seelsorgeeinheit";
+            if(!ev.title) ev.title = "Gottesdienst / Termin";
+
+            // Präzise KI-Sortierung für die Farben und Icons
+            let tLower = (ev.title + " " + ev.location).toLowerCase();
+            ev.category = "Gottesdienst"; 
+            if (tLower.includes('probe') || tLower.includes('ministranten')) ev.category = "Miniprobe";
+            else if (tLower.match(/beicht|versöhnung/)) ev.category = "Beichte";
+            else if (tLower.match(/rosenkranz|gebet|taizé|anbetung|andacht|vesper|laudes|morgenlob|friedensgebet/)) ev.category = "Gebet";
+            else if (tLower.match(/kreuzweg|ausflug|treffen|sitzung|wanderung/)) ev.category = "Aktion";
+            else if (tLower.match(/kroatisch|rum-orth|ukrainisch|tamilisch/)) ev.category = "Gastgemeinde";
+
+            // Zeitfilter: Zeige ALLES von HEUTE bis in 60 Tagen an. Alte Daten fliegen raus.
             const evDate = new Date(`${ev.date}T00:00:00`);
             const diffDays = Math.ceil((evDate - now) / (1000 * 60 * 60 * 24));
             
-            // Wir zeigen ausschließlich Termine an, die HEUTE sind oder in der ZUKUNFT liegen (max. +60 Tage).
-            // Vergangene Termine (z.B. von Anfang März) werden verworfen!
-            return diffDays >= 0 && diffDays <= 60;
-        }).sort((a, b) => {
-            // Chronologische Sortierung (Datum + Zeit)
-            return new Date(`${a.date}T${a.time}:00`) - new Date(`${b.date}T${b.time}:00`);
+            if (diffDays >= 0 && diffDays <= 60) {
+                finalEvents.push(ev);
+            }
         });
 
-        // --- 9. Ergebnis evaluieren & ausspielen ---
         if (finalEvents.length > 0) {
-            updateUI(finalEvents, true, `Erfolgreich geladen: ${finalEvents.length} Termine live aus senb.de`);
+            // Letzte Filterung von Duplikaten
+            const uniqueEvents = finalEvents.filter((v, i, a) => 
+                a.findIndex(t => (t.date === v.date && t.time === v.time && t.title === v.title && t.location === v.location)) === i
+            ).sort((a, b) => {
+                return new Date(`${a.date}T${a.time}:00`) - new Date(`${b.date}T${b.time}:00`);
+            });
+            
+            updateUI(uniqueEvents, true, `Erfolgreich geladen: ${uniqueEvents.length} Termine live aus senb.de`);
         } else {
-            throw new Error("Parser erfolgreich, aber senb.de enthält keine anstehenden Termine für die nächsten 60 Tage.");
+            throw new Error("Live-Abruf war erfolgreich, aber im Text der Website wurden keine anstehenden Termine gefunden.");
         }
 
     } catch (error) {
-        // EHRLICHER ERROR-STATE: Kein heimlicher Fallback. Wenn es brennt, brennt es.
+        // EHRLICHER ERROR: Keine erfundenen Daten!
         console.error("Live-Abruf gescheitert:", error);
-        
         if(statusDiv) {
-            statusDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-600 mr-2"></i> <b>Verbindungsfehler:</b> Termine konnten nicht live von senb.de abgerufen werden. (${error.message})`;
+            statusDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-600 mr-2"></i> <b>Fehler:</b> ${error.message}`;
         }
-        
-        // Generiere eine leere Ansicht, damit die Seite nicht abstürzt
         updateUI([], false, "");
     }
 }
@@ -809,7 +780,6 @@ function renderNextEventsPreview(events) {
     const container = document.getElementById('next-events-container');
     if (!container) return;
 
-    // Nur max 4 für die Startseite
     const upcomingEvents = events.slice(0, 4); 
 
     if (upcomingEvents.length === 0) {
@@ -817,7 +787,7 @@ function renderNextEventsPreview(events) {
             <li class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center shadow-sm">
                 <i class="fa-regular fa-calendar-xmark text-4xl text-gray-400 mb-2"></i>
                 <h4 class="font-bold text-gray-700">Keine Termine verfügbar</h4>
-                <p class="text-sm text-gray-500">Der Live-Abruf hat keine anstehenden Termine ergeben.</p>
+                <p class="text-sm text-gray-500">Es konnten keine aktuellen Termine geladen werden.</p>
             </li>`;
         return;
     }
@@ -854,7 +824,7 @@ function renderEventsTabDatum(events) {
     if (!container) return;
 
     if (events.length === 0) {
-        container.innerHTML = `<div class="p-8 text-center bg-gray-50 border border-gray-200 rounded-xl shadow-sm"><i class="fa-solid fa-calendar-xmark text-4xl text-gray-400 mb-4"></i><br><span class="font-bold text-gray-600 text-lg">Live-Abruf fehlerhaft oder leer</span><p class="text-gray-500 mt-2">Es konnten keine Termine von der Original-Website geladen werden.</p></div>`;
+        container.innerHTML = `<div class="p-8 text-center bg-gray-50 border border-gray-200 rounded-xl shadow-sm"><i class="fa-solid fa-calendar-xmark text-4xl text-gray-400 mb-4"></i><br><span class="font-bold text-gray-600 text-lg">Keine Termine gefunden</span></div>`;
         return;
     }
 
@@ -916,14 +886,15 @@ function renderEventsTabOrt(events) {
     if (!container) return;
 
     if (events.length === 0) {
-        container.innerHTML = `<div class="p-8 text-center bg-gray-50 border border-gray-200 rounded-xl w-full col-span-full shadow-sm"><i class="fa-solid fa-calendar-xmark text-4xl text-gray-400 mb-4"></i><br><span class="font-bold text-gray-600 text-lg">Live-Abruf fehlerhaft oder leer</span><p class="text-gray-500 mt-2">Es konnten keine Termine von der Original-Website geladen werden.</p></div>`;
+        container.innerHTML = `<div class="p-8 text-center bg-gray-50 border border-gray-200 rounded-xl w-full col-span-full shadow-sm"><i class="fa-solid fa-calendar-xmark text-4xl text-gray-400 mb-4"></i><br><span class="font-bold text-gray-600 text-lg">Keine Termine gefunden</span></div>`;
         return;
     }
 
-    // VOLLAUTOMATISCH: Es wird für JEDEN gefundenen Ort eine eigene Karte angelegt.
+    // VOLLAUTOMATISCH: Das Skript liest JEDEN gefundenen Ort aus dem Array und baut für jeden eine Karte.
+    // Egal ob das nun St. Georg, ein Gemeindehaus oder ein komplett neuer Ort ist.
     const grouped = events.reduce((acc, ev) => {
         const loc = ev.location || "Weitere Orte";
-        if (!acc[loc]) acc[loc] = [];
+        if (!acc[loc]) acc[loc] =[];
         acc[loc].push(ev);
         return acc;
     }, {});
