@@ -1227,27 +1227,6 @@ function deleteMini(id) {
 }
 
 // --- EXCEL UPLOAD & SMART KI SCANNER ---
-// --- EXCEL UPLOAD & LOKALE MUSTERERKENNUNGS-KI ---
-const dropZone = document.getElementById('drop-zone');
-const fileInput = document.getElementById('file-input');
-
-if(dropZone) {
-    dropZone.addEventListener('click', () => fileInput.click());
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('drag-over');
-        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-    });
-}
-
-if(fileInput) {
-    fileInput.addEventListener('change', function() {
-        if (this.files.length) handleFile(this.files[0]);
-    });
-}
-
 function handleFile(file) {
     const fileName = file.name.toLowerCase();
     document.getElementById('om-event-count').innerHTML = "<i class='fa-solid fa-spinner fa-spin text-churchRed'></i> Analysiere Struktur...";
@@ -1257,12 +1236,30 @@ function handleFile(file) {
         reader.onload = function(e) {
             try {
                 const data = new Uint8Array(e.target.result);
-                // SheetJS liest das Excel-Dokument
                 const workbook = XLSX.read(data, {type: 'array'});
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 
-                // Wir wandeln das Sheet in ein 2D-Array um (Zeilen und Spalten)
-                const rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ""});
+                // SUPER-VISION: Verbundene Zellen (Merged Cells) auflösen!
+                // Dadurch gehen keine Daten mehr verloren, wenn der Pfarrer Zeilen verbindet.
+                if (firstSheet['!merges']) {
+                    firstSheet['!merges'].forEach(merge => {
+                        let topLeftCell = firstSheet[XLSX.utils.encode_cell({c: merge.s.c, r: merge.s.r})];
+                        if (!topLeftCell) return;
+                        
+                        // Kopiere den Wert der ersten Zelle in alle versteckten Zellen darunter
+                        for (let R = merge.s.r; R <= merge.e.r; ++R) {
+                            for (let C = merge.s.c; C <= merge.e.c; ++C) {
+                                let targetCell = XLSX.utils.encode_cell({c: C, r: R});
+                                if (!firstSheet[targetCell]) {
+                                    firstSheet[targetCell] = Object.assign({}, topLeftCell);
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // raw: false erzwingt, dass Excel-Zahlen als echtes formatiertes Datum gelesen werden
+                const rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, raw: false, defval: ""});
                 runLocalVisionAI(rows);
             } catch (err) {
                 alert("Fehler beim Lesen der Excel-Datei: " + err.message);
@@ -1278,7 +1275,6 @@ function handleFile(file) {
 function processUpload() {
     const text = document.getElementById('text-fallback').value;
     if(text.trim().length > 10) {
-        // Falls Text reinkopiert wird, spalten wir ihn in ein Pseudo-Grid auf
         const rows = text.split('\n').map(line => line.split('\t'));
         runLocalVisionAI(rows);
     } else {
@@ -1291,80 +1287,67 @@ function runLocalVisionAI(rows) {
     let events = [];
     let lastFoundDate = "Unbekannt";
 
-    // Wir iterieren durch jede Zeile der Tabelle
     for (let y = 0; y < rows.length; y++) {
         let row = rows[y];
         if (!row || row.length === 0) continue;
 
-        // Zeile zu einem lesbaren String verbinden
         let rowStr = row.join(" ").replace(/\s+/g, ' ').trim();
         if (rowStr.length < 2) continue;
 
-        // 1. DATUM ERKENNEN (z.B. 12.04. oder 12.04.2026)
-        // Die KI merkt sich das letzte Datum, da in Excel das Datum oft nur einmal oben steht
+        // Datum suchen
         let dateMatch = rowStr.match(/\b(\d{1,2})\.(\d{1,2})\.(?:\d{2,4})?\b/);
         if (dateMatch) {
             lastFoundDate = dateMatch[0];
-            // Jahr ergänzen, falls es fehlt (z.B. 12.04. -> 12.04.)
             if(!lastFoundDate.match(/\d{4}/)) lastFoundDate = `${dateMatch[1].padStart(2,'0')}.${dateMatch[2].padStart(2,'0')}.`;
         }
 
-        // 2. UHRZEIT ERKENNEN (z.B. 18:00 oder 09.30)
+        // Zeit suchen
         let timeMatch = rowStr.match(/\b(\d{1,2})[:\.](\d{2})\b/);
         
         if (timeMatch) {
             let time = `${timeMatch[1].padStart(2,'0')}:${timeMatch[2]}`;
             
-            // 3. UMFELD-ANALYSE (Vision)
-            // Wir schauen uns die aktuelle Zeile an, ABER auch die Zeile darüber und darunter,
-            // falls der Pfarrer den Ort in eine andere Zelle geschrieben hat.
+            // Umfeld-Analyse (Kontext aufbauen aus der aktuellen und den umgebenden Zeilen)
             let contextArr = [];
-            if (y > 0) contextArr.push(rows[y-1].join(" "));       // Zeile darüber
-            contextArr.push(rowStr);                               // Aktuelle Zeile
-            if (y < rows.length - 1) contextArr.push(rows[y+1].join(" ")); // Zeile darunter
+            if (y > 0) contextArr.push(rows[y-1].join(" "));
+            contextArr.push(rowStr);
+            if (y < rows.length - 1) contextArr.push(rows[y+1].join(" "));
             
             let fullContext = contextArr.join(" | ").toLowerCase();
 
-            // 4. FILTER-LOGIK (Otmar/Weigheim JA, WGF NEIN)
+            // FILTER: Otmar / Weigheim JA, WGF NEIN
             let isTargetLocation = fullContext.includes("weigheim") || fullContext.includes("otmar");
             let isWGF = fullContext.includes("wgf") || fullContext.includes("wort-gottes") || fullContext.includes("wortgottes");
 
             if (isTargetLocation && !isWGF) {
                 
-                // 5. ART DES GOTTESDIENSTES EXTRAHIEREN
-                // Wir nehmen den Text der aktuellen Zeile und löschen Uhrzeit und Ort raus, 
-                // um zu sehen, was als "Titel" übrig bleibt.
                 let typeText = rowStr
                     .replace(timeMatch[0], '') 
                     .replace(/uhr/i, '')
                     .replace(lastFoundDate, '')  
                     .replace(/weigheim|st\.\s*otmar|otmar/ig, '') 
-                    .replace(/^[^\wäöüÄÖÜß]+/, '') // Sonderzeichen am Anfang löschen
+                    .replace(/^[^\wäöüÄÖÜß]+/, '') // Sonderzeichen vorne löschen
                     .trim();
                 
-                // Wenn nichts Sinnvolles übrig bleibt, steht der Titel vermutlich eine Zeile tiefer
                 if(typeText.length < 3 && y < rows.length - 1) {
                     typeText = rows[y+1].join(" ").replace(/weigheim|st\.\s*otmar|otmar/ig, '').trim();
                 }
-
                 if(typeText.length < 3) typeText = "Gottesdienst";
 
-                // Duplikate vermeiden (falls das Skript durch den Kontext zweimal anschlägt)
                 let isDuplicate = events.some(e => e.date === lastFoundDate && e.time === time);
                 
                 if (!isDuplicate) {
                     events.push({
                         date: lastFoundDate,
                         time: time,
-                        type: typeText.substring(0, 60), // Nicht zu lang für das PDF
-                        count: "2" // Bereitstellung für das Failsafe-Menü: Standardmäßig 2 Minis
+                        type: typeText.substring(0, 60),
+                        count: "2"
                     });
                 }
             }
         }
     }
 
-    // Übergabe an das Failsafe-Menü (Review Ansicht)
     extractedEventsObermini = events;
     const countLabel = document.getElementById('om-event-count');
     
@@ -1372,7 +1355,7 @@ function runLocalVisionAI(rows) {
         countLabel.innerHTML = "<span class='text-red-500'>Keine relevanten Termine (Otmar, keine WGF) gefunden.</span>";
     } else {
         countLabel.innerHTML = `<span class='text-green-600 bg-green-100 px-2 py-1 rounded shadow-sm font-bold'><i class="fa-solid fa-check mr-1"></i> ${events.length} Termine erkannt!</span>`;
-        showReviewView(); // Öffnet das Prüf-Fenster!
+        showReviewView();
     }
 }
 // --- REVIEW / FAILSAFE ANSICHT ---
