@@ -489,7 +489,25 @@
                                     
                                     <!-- LINKE SEITE: Datenbank & Sperrdaten -->
                                     <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
-                                        <h4 class="font-bold text-lg mb-4 text-churchDark"><i class="fa-solid fa-users text-churchRed mr-2"></i>Ministranten & Sperrdaten</h4>
+                                        <h4 class="font-bold text-lg mb-4 text-churchDark"><i class="fa-solid fa-users text-churchRed mr-2"></i><!-- LINKE SEITE: Datenbank & Sperrdaten -->
+<div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+    <h4 class="font-bold text-lg mb-2 text-churchDark"><i class="fa-solid fa-users text-churchRed mr-2"></i>Ministranten & Sperrdaten</h4>
+    <p class="text-xs text-gray-500 mb-4 leading-relaxed">
+        Trage ein, wann jemand <b>nicht</b> kann (z.B. 12.04).<br>
+        <span class="text-churchGold font-bold"><i class="fa-solid fa-link"></i> Geschwister-Trick:</span> Trage Geschwister mit einem <b>&</b> zusammen ein (z.B. <i>Max & Lisa</i>). Das System erkennt automatisch, dass das 2 Personen sind, und teilt sie immer zusammen ein!
+    </p>
+    
+    <!-- Mini hinzufügen -->
+    <div class="flex gap-2 mb-4">
+        <input type="text" id="new-mini-name" placeholder="z.B. Max & Lisa..." class="flex-grow px-3 py-2 border border-gray-300 rounded focus:border-churchRed outline-none text-sm shadow-sm">
+        <button onclick="addMiniToDB()" class="bg-churchRed text-white px-4 py-2 rounded font-bold hover:bg-red-800 text-sm shadow-sm transition"><i class="fa-solid fa-plus"></i></button>
+    </div>
+
+    <!-- Liste der Minis -->
+    <div class="max-h-96 overflow-y-auto pr-2 border-t pt-4 space-y-3 custom-scrollbar" id="om-db-list">
+        <!-- Wird per JS befüllt -->
+    </div>
+</div></h4>
                                         <p class="text-sm text-gray-500 mb-4">Hier eintragen, an welchen Daten (z.B. 12.04) ein Mini <b>nicht</b> kann. Die Änderungen werden lokal gespeichert.</p>
                                         
                                         <!-- Mini hinzufügen -->
@@ -1483,7 +1501,7 @@ function addReviewEvent() {
 }
 
 // --- PDF GENERIERUNG ---
-// --- PDF GENERIERUNG (KATHOLISCHES / VATIKAN DESIGN) ---
+// --- PDF GENERIERUNG (EDLES VATIKAN DESIGN + GESCHWISTER-LOGIK) ---
 function generatePDF() {
     saveMinisDB(); 
     syncReviewData(); 
@@ -1504,21 +1522,37 @@ function generatePDF() {
             return !m.blocked.includes(evShortDate); 
         });
 
-        // Mischen
+        // Liste mischen, damit es gerecht zugeht
         available = available.sort(() => 0.5 - Math.random());
         
         let assignedNames = "";
 
-        // HIER: WENN ALLE EINGETEILT SIND, EINFACH "ALLE" SCHREIBEN
-        if (ev.count === "ALLE") {
-            assignedNames = "Alle";
+        // WENN ALLE EINGETEILT SIND
+        if (ev.count === "ALLE" || ev.count === "Alle") {
+            assignedNames = "Alle Ministranten";
         } else {
-            let num = parseInt(ev.count) || 2;
-            // HIER: INTERPUNKTION (Komma) STATT "und"
-            assignedNames = available.slice(0, num).map(m => m.name).join(', ');
+            let numNeeded = parseInt(ev.count) || 2;
+            let currentCount = 0;
+            let picked = [];
+
+            // GESCHWISTER-LOGIK: Prüfen, wie viele Personen in einem Eintrag stecken
+            for (let i = 0; i < available.length; i++) {
+                if (currentCount >= numNeeded) break; // Fertig, wenn genug Minis da sind
+                
+                let m = available[i];
+                
+                // Zählt die '&' oder 'und' im Namen, um zu wissen ob es z.B. 2 oder 3 Geschwister sind
+                let personsInEntry = (m.name.match(/&| und /gi) || []).length + 1;
+                
+                picked.push(m.name);
+                currentCount += personsInEntry; // Erhöht den Zähler gleich um 2, falls es "Max & Lisa" war
+            }
+            
+            // Komma-Trennung statt "und"
+            assignedNames = picked.join(', ');
         }
         
-        if(!assignedNames) assignedNames = "--- FEHLT ---";
+        if(!assignedNames) assignedNames = "--- NIEMAND VERFÜGBAR ---";
 
         finalSchedule.push([
             `${ev.date}\n${ev.time} Uhr`,
@@ -1535,66 +1569,81 @@ function generatePDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // DESIGN: Katholischer / Vatikan Stil
-    // Schriftart Times (Serifen wirken traditioneller und eleganter)
-    doc.setFont("times", "bold");
+    // ==========================================
+    // DESIGN: EDLES KATHOLISCHES VATIKAN-LAYOUT
+    // ==========================================
     
-    // Kirchenrot für den Titel
-    doc.setTextColor(139, 0, 0); 
-    doc.setFontSize(22);
-    doc.text("Dienstplan der Ministranten", 105, 22, { align: "center" });
-    
-    // Untertitel in elegantem Grau
-    doc.setFont("times", "normal");
-    doc.setFontSize(13);
-    doc.setTextColor(50, 50, 50);
-    doc.text("Katholische Kirchengemeinde St. Otmar, Weigheim", 105, 30, { align: "center" });
+    // 1. Ein goldenes Kreuz oben zentriert zeichnen
+    doc.setDrawColor(212, 175, 55); // Vatikan-Gold
+    doc.setLineWidth(1.2);
+    doc.line(105, 12, 105, 22); // Vertikal
+    doc.line(102, 15, 108, 15); // Horizontal
 
-    // Eleganter goldener Trennstrich (Vatikan-Gold)
-    doc.setDrawColor(212, 175, 55);
-    doc.setLineWidth(0.8);
-    doc.line(20, 35, 190, 35);
+    // 2. Haupttitel
+    doc.setFont("times", "bold");
+    doc.setTextColor(139, 0, 0); // Dunkles Kirchenrot
+    doc.setFontSize(24);
+    doc.text("Dienstplan der Ministranten", 105, 32, { align: "center" });
+    
+    // 3. Untertitel
+    doc.setFont("times", "italic");
+    doc.setFontSize(14);
+    doc.setTextColor(80, 80, 80);
+    doc.text("Katholische Kirchengemeinde St. Otmar, Weigheim", 105, 40, { align: "center" });
+
+    // 4. Trennstrich
+    doc.setLineWidth(0.5);
+    doc.line(20, 45, 190, 45);
 
     let now = new Date().toLocaleDateString('de-DE');
-    doc.setFontSize(9);
+    doc.setFontSize(10);
     doc.setTextColor(150, 150, 150);
-    doc.text(`Stand: ${now}`, 190, 42, { align: "right" });
+    doc.text(`Generiert am: ${now}`, 190, 52, { align: "right" });
 
-    // Tabelle im klassischen Buch-Stil (Ohne moderne graue Streifen)
+    // 5. Die Tabelle (Elegantes Buch-Design)
     doc.autoTable({
-        startY: 46,
+        startY: 56,
         head: [['Datum & Uhrzeit', 'Anlass / Gottesdienst', 'Eingeteilte Ministranten']],
         body: finalSchedule,
-        theme: 'plain', // Keine Streifen, sondern saubere Linien
+        theme: 'grid', // Zeichnet saubere Rahmen
         styles: { 
             font: 'times', 
             fontSize: 12, 
-            cellPadding: 6, 
+            cellPadding: 7, 
             valign: 'middle',
-            textColor: [30, 30, 30],
-            lineColor: [200, 200, 200],
-            lineWidth: 0.1 // Zarte Rahmen für Eleganz
+            textColor: [40, 40, 40],
+            lineColor: [212, 175, 55], // Goldene Tabellen-Rahmen
+            lineWidth: 0.2
         },
         headStyles: { 
-            fillColor: [139, 0, 0], // Dunkles Kirchenrot
-            textColor: [255, 255, 255], 
+            fillColor: [139, 0, 0], // Kirchenrot als Hintergrund
+            textColor: [255, 235, 180], // Helles Gold für die Schrift
             fontStyle: 'bold',
-            fontSize: 13
+            fontSize: 13,
+            halign: 'center'
         },
         columnStyles: {
-            0: { cellWidth: 35, fontStyle: 'bold' },
+            0: { cellWidth: 35, fontStyle: 'bold', halign: 'center' },
             1: { cellWidth: 'auto' },
-            2: { cellWidth: 75, fontStyle: 'bold', textColor: [139, 0, 0] } 
+            2: { cellWidth: 80, fontStyle: 'bold', textColor: [139, 0, 0] } // Namen in Rot
+        },
+        alternateRowStyles: { 
+            fillColor: [253, 251, 247] // Sehr zartes Pergament-Creme für jede 2. Zeile
         }
     });
 
-    // Subtiler Fußtext
+    // 6. Subtiler Fußtext (Segen)
     const finalY = doc.lastAutoTable.finalY || 50;
-    doc.setFontSize(10);
+    doc.setFontSize(11);
     doc.setFont("times", "italic");
     doc.setTextColor(100, 100, 100);
-    doc.text("Solltest du an einem Termin verhindert sein, kümmere dich bitte selbstständig um Ersatz.", 105, finalY + 12, { align: "center" });
+    doc.text("Solltest du verhindert sein, kümmere dich bitte selbstständig um Ersatz.", 105, finalY + 12, { align: "center" });
+    
+    doc.setFont("times", "bolditalic");
+    doc.setTextColor(139, 0, 0);
+    doc.text("Gelobt sei Jesus Christus. In Ewigkeit, Amen.", 105, finalY + 19, { align: "center" });
 
+    // Download
     doc.save('Dienstplan_Otmar.pdf');
 }
     </script>
