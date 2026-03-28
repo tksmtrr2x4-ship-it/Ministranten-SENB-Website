@@ -1462,9 +1462,10 @@ function addReviewEvent() {
 }
 
 // --- PDF GENERIERUNG ---
+// --- PDF GENERIERUNG (KATHOLISCHES / VATIKAN DESIGN) ---
 function generatePDF() {
-    saveMinisDB(); // Sichert die Sperrdaten der linken Seite
-    syncReviewData(); // Sichert die letzte Bearbeitung in der Review-Liste
+    saveMinisDB(); 
+    syncReviewData(); 
 
     if (extractedEventsObermini.length === 0) {
         alert("Fehler: Keine Termine zum Erstellen des Plans vorhanden.");
@@ -1482,16 +1483,18 @@ function generatePDF() {
             return !m.blocked.includes(evShortDate); 
         });
 
-        // Durchmischen (Zufall)
+        // Mischen
         available = available.sort(() => 0.5 - Math.random());
         
         let assignedNames = "";
 
+        // HIER: WENN ALLE EINGETEILT SIND, EINFACH "ALLE" SCHREIBEN
         if (ev.count === "ALLE") {
-            assignedNames = available.map(m => m.name).join(', ');
+            assignedNames = "Alle";
         } else {
             let num = parseInt(ev.count) || 2;
-            assignedNames = available.slice(0, num).map(m => m.name).join(' und ');
+            // HIER: INTERPUNKTION (Komma) STATT "und"
+            assignedNames = available.slice(0, num).map(m => m.name).join(', ');
         }
         
         if(!assignedNames) assignedNames = "--- FEHLT ---";
@@ -1511,33 +1514,65 @@ function generatePDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    doc.setFontSize(18);
-    doc.setTextColor(185, 28, 28); 
-    doc.text("Dienstplan Ministranten", 14, 20);
+    // DESIGN: Katholischer / Vatikan Stil
+    // Schriftart Times (Serifen wirken traditioneller und eleganter)
+    doc.setFont("times", "bold");
     
-    doc.setFontSize(12);
+    // Kirchenrot für den Titel
+    doc.setTextColor(139, 0, 0); 
+    doc.setFontSize(22);
+    doc.text("Dienstplan der Ministranten", 105, 22, { align: "center" });
+    
+    // Untertitel in elegantem Grau
+    doc.setFont("times", "normal");
+    doc.setFontSize(13);
     doc.setTextColor(50, 50, 50);
-    doc.text("St. Otmar / Weigheim", 14, 28);
+    doc.text("Katholische Kirchengemeinde St. Otmar, Weigheim", 105, 30, { align: "center" });
+
+    // Eleganter goldener Trennstrich (Vatikan-Gold)
+    doc.setDrawColor(212, 175, 55);
+    doc.setLineWidth(0.8);
+    doc.line(20, 35, 190, 35);
 
     let now = new Date().toLocaleDateString('de-DE');
     doc.setFontSize(9);
     doc.setTextColor(150, 150, 150);
-    doc.text(`Automatisch generiert am: ${now}`, 14, 33);
+    doc.text(`Stand: ${now}`, 190, 42, { align: "right" });
 
+    // Tabelle im klassischen Buch-Stil (Ohne moderne graue Streifen)
     doc.autoTable({
-        startY: 38,
-        head: [['Datum & Uhrzeit', 'Art der Feier', 'Eingeteilte Minis']],
+        startY: 46,
+        head: [['Datum & Uhrzeit', 'Anlass / Gottesdienst', 'Eingeteilte Ministranten']],
         body: finalSchedule,
-        theme: 'striped',
-        headStyles: { fillColor: [31, 41, 55] }, 
-        alternateRowStyles: { fillColor: [249, 250, 251] },
-        styles: { font: 'helvetica', fontSize: 10, cellPadding: 5, valign: 'middle' },
+        theme: 'plain', // Keine Streifen, sondern saubere Linien
+        styles: { 
+            font: 'times', 
+            fontSize: 12, 
+            cellPadding: 6, 
+            valign: 'middle',
+            textColor: [30, 30, 30],
+            lineColor: [200, 200, 200],
+            lineWidth: 0.1 // Zarte Rahmen für Eleganz
+        },
+        headStyles: { 
+            fillColor: [139, 0, 0], // Dunkles Kirchenrot
+            textColor: [255, 255, 255], 
+            fontStyle: 'bold',
+            fontSize: 13
+        },
         columnStyles: {
             0: { cellWidth: 35, fontStyle: 'bold' },
             1: { cellWidth: 'auto' },
-            2: { cellWidth: 70, fontStyle: 'bold', textColor: [185, 28, 28] } 
+            2: { cellWidth: 75, fontStyle: 'bold', textColor: [139, 0, 0] } 
         }
     });
+
+    // Subtiler Fußtext
+    const finalY = doc.lastAutoTable.finalY || 50;
+    doc.setFontSize(10);
+    doc.setFont("times", "italic");
+    doc.setTextColor(100, 100, 100);
+    doc.text("Solltest du an einem Termin verhindert sein, kümmere dich bitte selbstständig um Ersatz.", 105, finalY + 12, { align: "center" });
 
     doc.save('Dienstplan_Otmar.pdf');
 }
