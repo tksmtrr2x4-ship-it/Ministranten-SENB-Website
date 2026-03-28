@@ -8,14 +8,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome für Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
+    <!-- Google Fonts (Nunito für ein freundliches, modernes Schriftbild) -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- PDF Generierung Bibliotheken (jsPDF & AutoTable) -->
+    <!-- NEU: Bibliotheken für PDF-Erstellung und Word-Dokumente (.docx) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    
-    <!-- NEU: Mammoth.js zum Auslesen von Word-Dateien (.docx) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 
     <script>
@@ -33,17 +31,26 @@
         }
     </script>
     <style>
+        /* Sanftes Ausblenden für SPA Navigation */
         .page-section { display: none; animation: fadeIn 0.5s; }
         .page-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Sidebar transition für Mobile */
         #sidebar { transition: transform 0.3s ease-in-out; }
+
+        /* NEU: Drag & Drop Highlight für Dateiupload */
         .drag-over { border-color: #b91c1c !important; background-color: #fef2f2 !important; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased flex h-screen overflow-hidden relative">
 
-    <!-- GLOBALER LOGIN-SCHUTZ ANFANG -->
+    <!-- ======================================================================================= -->
+    <!-- GLOBALER LOGIN-SCHUTZ ANFANG                                                            -->
+    <!-- Um die Sperre der Webseite aufzuheben, lösche diesen Block vom ANFANG bis zum ENDE      -->
+    <!-- ======================================================================================= -->
     <style id="global-login-styles">
+        /* Versteckt die Webseite, solange das Passwort nicht eingegeben wurde */
         #app-wrapper { display: none !important; }
     </style>
 
@@ -85,70 +92,105 @@
             const form = document.getElementById('global-login-form');
             const errorMsg = document.getElementById('global-login-error');
             
+            // 1. Prüfen, ob der Nutzer in dieser Sitzung bereits eingeloggt ist
             if(sessionStorage.getItem('website_unlocked') === 'true') {
-                mask.remove();
-                styles.remove();
-                wrapper.style.display = 'flex';
+                mask.remove(); // Maske löschen
+                styles.remove(); // CSS-Sperre aufheben, Seite wird sichtbar
+                wrapper.style.display = 'flex'; // Flex-Layout der Seite wiederherstellen
                 return;
             }
             
+            // 2. Login-Formular auswerten
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const user = document.getElementById('global-user').value.trim();
                 const pw = document.getElementById('global-pw').value.trim();
                 
+                // =========================================================
+                // HIER ZUGANGSDATEN ÄNDERN:
+                // =========================================================
                 if(user === 'admin' && pw === 'minis2026') {
+                    
+                    // Bei Erfolg: Lokal speichern und Maske ausblenden
                     sessionStorage.setItem('website_unlocked', 'true');
                     mask.style.opacity = '0';
                     setTimeout(() => {
                         mask.remove();
                         styles.remove();
                         wrapper.style.display = 'flex';
-                    }, 300);
+                    }, 300); // Weicher Übergang
                 } else {
+                    // Bei Fehler:
                     errorMsg.classList.remove('hidden');
                     document.getElementById('global-pw').value = '';
                 }
             });
         });
     </script>
-    <!-- GLOBALER LOGIN-SCHUTZ ENDE -->
+    <!-- ======================================================================================= -->
+    <!-- GLOBALER LOGIN-SCHUTZ ENDE                                                              -->
+    <!-- ======================================================================================= -->
 
-    <!-- WRAPPER DER WEBSEITE -->
+
+    <!-- WRAPPER DER WEBSEITE (Verhindert, dass man hinter die Login-Maske schauen kann) -->
     <div id="app-wrapper" class="w-full h-full flex">
         
-        <!-- Mobile Header -->
+        <!-- NAVIGATION UMBAU: SIDEBAR (Desktop & Mobile) -->
+        
+        <!-- Mobile Header (nur sichtbar auf kleinen Bildschirmen) -->
         <div class="md:hidden flex justify-between items-center bg-white shadow-md p-4 fixed w-full top-0 z-50 h-20">
             <div class="flex items-center cursor-pointer" onclick="navigate('home')">
                 <i class="fa-solid fa-cross text-churchRed text-2xl mr-2"></i>
                 <span class="font-bold text-xl text-churchDark">Minis <span class="text-churchRed">Neckar-Baar</span></span>
             </div>
-            <button id="mobile-menu-btn" class="text-gray-600 hover:text-churchRed focus:outline-none" onclick="toggleSidebar()">
+            <button id="mobile-menu-btn" class="text-gray-600 hover:text-churchRed focus:outline-none">
                 <i class="fa-solid fa-bars text-3xl"></i>
             </button>
         </div>
 
-        <!-- Mobile Overlay -->
+        <!-- Mobile Overlay (grauer Hintergrund, wenn Sidebar offen) -->
         <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
 
-        <!-- Sidebar -->
+        <!-- Die eigentliche Sidebar -->
         <aside id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 z-50 bg-white w-72 shadow-xl md:shadow-md flex flex-col h-full overflow-y-auto">
+            
+            <!-- LOGO HIER EINFÜGEN -->
+            <!-- Platzhalter für das Logo, ganz oben in der Sidebar -->
             <div class="p-6 text-center border-b border-gray-100 flex-shrink-0 cursor-pointer" onclick="navigate('home')">
                 <img src="assets/MINISSENB.jpeg" alt="Logo Platzhalter" class="mx-auto w-20 h-20 rounded-full mb-4 border-2 border-churchRed shadow-sm object-cover">
+                <!-- Alternativer Text, falls Logo nicht lädt -->
                 <span class="font-bold text-2xl text-churchDark block">Minis <br><span class="text-churchRed">Neckar-Baar</span></span>
             </div>
 
+            <!-- Navigation Links -->
             <nav class="flex flex-col py-6 space-y-1 font-semibold flex-grow px-4" id="nav-links">
-                <a href="#" onclick="navigate('home')" class="nav-link nav-link-home px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center bg-red-50 text-churchRed"><i class="fa-solid fa-house w-6"></i> Startseite</a>
-                <a href="#" onclick="navigate('about')" class="nav-link nav-link-about px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center"><i class="fa-solid fa-users w-6"></i> Über uns</a>
-                <a href="#" onclick="navigate('aktuelles')" class="nav-link nav-link-aktuelles px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center"><i class="fa-regular fa-calendar-days w-6"></i> Termine & Pläne</a>
-                <a href="#" onclick="navigate('mitmachen')" class="nav-link nav-link-mitmachen px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center"><i class="fa-solid fa-hands-holding-child w-6"></i> Ministrant werden</a>
-                <a href="#" onclick="navigate('aktionen')" class="nav-link nav-link-aktionen px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center"><i class="fa-solid fa-camera-retro w-6"></i> Aktionen & Medien</a>
+                <a href="#" onclick="navigate('home')" class="nav-link nav-link-home px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center bg-red-50 text-churchRed">
+                    <i class="fa-solid fa-house w-6"></i> Startseite
+                </a>
+                <a href="#" onclick="navigate('about')" class="nav-link nav-link-about px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center">
+                    <i class="fa-solid fa-users w-6"></i> Über uns
+                </a>
+                <a href="#" onclick="navigate('aktuelles')" class="nav-link nav-link-aktuelles px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center">
+                    <i class="fa-regular fa-calendar-days w-6"></i> Termine & Pläne
+                </a>
+                <a href="#" onclick="navigate('mitmachen')" class="nav-link nav-link-mitmachen px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center">
+                    <i class="fa-solid fa-hands-holding-child w-6"></i> Ministrant werden
+                </a>
+                <a href="#" onclick="navigate('aktionen')" class="nav-link nav-link-aktionen px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center">
+                    <i class="fa-solid fa-camera-retro w-6"></i> Aktionen & Medien
+                </a>
+                
                 <div class="my-4 border-t border-gray-200"></div>
-                <a href="#" onclick="navigate('intern')" class="nav-link nav-link-intern px-4 py-3 text-churchGold rounded-lg hover:bg-yellow-50 hover:text-yellow-600 transition flex items-center"><i class="fa-solid fa-lock w-6"></i> Interner Bereich</a>
-                <a href="#" onclick="navigate('kontakt')" class="nav-link nav-link-kontakt px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center"><i class="fa-solid fa-envelope w-6"></i> Kontakt</a>
+                
+                <a href="#" onclick="navigate('intern')" class="nav-link nav-link-intern px-4 py-3 text-churchGold rounded-lg hover:bg-yellow-50 hover:text-yellow-600 transition flex items-center">
+                    <i class="fa-solid fa-lock w-6"></i> Interner Bereich
+                </a>
+                <a href="#" onclick="navigate('kontakt')" class="nav-link nav-link-kontakt px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center">
+                    <i class="fa-solid fa-envelope w-6"></i> Kontakt
+                </a>
             </nav>
 
+            <!-- Sidebar Footer -->
             <div class="p-4 border-t border-gray-100 text-xs text-center text-gray-500">
                 &copy; 2026 Minis Neckar-Baar
             </div>
@@ -160,7 +202,9 @@
 
                 <!-- 1. STARTSEITE -->
                 <section id="home" class="page-section active">
+                    <!-- Hero Banner (Dynamisches Bild per JS) -->
                     <div id="hero-banner" class="text-white py-32 lg:py-48 px-4 text-center bg-cover bg-center relative">
+                        <!-- Dark Gradient Overlay via CSS im JS Injected -->
                         <div class="relative z-10">
                             <h1 class="text-4xl lg:text-6xl font-extrabold mb-4 drop-shadow-lg">Wir sind die Ministranten<br>der SE Neckar-Baar!</h1>
                             <p class="text-xl lg:text-2xl mb-8 font-light drop-shadow-md">Glaube erleben. Gemeinschaft feiern. Spaß haben.</p>
@@ -171,22 +215,59 @@
                         </div>
                     </div>
 
+                    <!-- Schnellzugriffe (Cards) -->
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="bg-white rounded-xl shadow-lg p-6 text-center border-t-4 border-churchRed hover:shadow-xl transition cursor-pointer" onclick="navigate('aktuelles')">
                                 <i class="fa-solid fa-calendar-alt text-4xl text-churchRed mb-4"></i>
                                 <h3 class="text-xl font-bold mb-2">Termine & Pläne</h3>
                                 <p class="text-gray-600 text-sm mb-4">Wann ist der nächste Gottesdienst oder die nächste Gruppenstunde?</p>
+                                <button class="text-churchRed font-bold hover:underline">Zum Kalender &rarr;</button>
                             </div>
                             <div class="bg-white rounded-xl shadow-lg p-6 text-center border-t-4 border-churchGold hover:shadow-xl transition cursor-pointer" onclick="navigate('mitmachen')">
                                 <i class="fa-solid fa-users text-4xl text-churchGold mb-4"></i>
                                 <h3 class="text-xl font-bold mb-2">Mach mit!</h3>
                                 <p class="text-gray-600 text-sm mb-4">Du hast Erstkommunion gefeiert und hast Lust auf eine tolle Gemeinschaft?</p>
+                                <button class="text-churchGold font-bold hover:underline">Infos für Neue &rarr;</button>
                             </div>
                             <div class="bg-white rounded-xl shadow-lg p-6 text-center border-t-4 border-churchRed hover:shadow-xl transition cursor-pointer" onclick="navigate('aktionen')">
                                 <i class="fa-solid fa-camera-retro text-4xl text-churchRed mb-4"></i>
                                 <h3 class="text-xl font-bold mb-2">Bilder & Aktionen</h3>
                                 <p class="text-gray-600 text-sm mb-4">Eindrücke vom letzten Zeltlager und unseren Ausflügen.</p>
+                                <button class="text-churchRed font-bold hover:underline">Zur Galerie &rarr;</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="py-16 bg-gray-50">
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                            <h2 class="text-3xl font-bold text-churchDark mb-6">Was machen wir eigentlich?</h2>
+                            <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-8">
+                                Als Ministrantinnen und Ministranten (kurz: Minis) unterstützen wir den Pfarrer im Gottesdienst. Wir tragen Kerzen, bringen Brot und Wein zum Altar und schwenken das Weihrauchfass. Aber wir sind noch viel mehr: Eine starke Gemeinschaft von Kindern und Jugendlichen, die zusammen Ausflüge macht, ins Zeltlager fährt und gemeinsam viel Spaß hat!
+                            </p>
+                            <button onclick="navigate('about')" class="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-full hover:bg-gray-300 transition">Mehr über uns erfahren</button>
+                        </div>
+                    </div>
+
+                    <!-- News & Termine Preview -->
+                    <div class="py-16 bg-white">
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-12">
+                            <!-- Aktuelle Neuigkeiten (Dynamisch) -->
+                            <div>
+                                <h2 class="text-3xl font-bold text-churchDark mb-6 border-b-2 border-churchGold pb-2"><i class="fa-solid fa-newspaper text-churchRed mr-2"></i>Aktuelles</h2>
+                                <div id="news-container" class="space-y-6">
+                                    <!-- Wird per JS befüllt -->
+                                </div>
+                            </div>
+                            <!-- Nächste Termine (Dynamisch synchronisiert) -->
+                            <div>
+                                <h2 class="text-3xl font-bold text-churchDark mb-6 border-b-2 border-churchGold pb-2"><i class="fa-regular fa-calendar text-churchRed mr-2"></i>Nächste Termine</h2>
+                                <ul id="next-events-container" class="space-y-4">
+                                    <!-- Wird per JS aus zentraler Datenstruktur befüllt -->
+                                </ul>
+                                <div class="mt-4 text-right">
+                                    <button onclick="navigate('aktuelles')" class="text-churchRed font-bold hover:underline">Alle Termine ansehen &rarr;</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -197,6 +278,31 @@
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-12">
                             <h2 class="text-4xl font-extrabold text-churchDark">Über Uns</h2>
+                            <p class="mt-4 text-xl text-gray-600">Lerne die Struktur und die Köpfe hinter den Ministranten Neckar-Baar kennen.</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+                            <div>
+                                <h3 class="text-2xl font-bold text-churchRed mb-4">Unsere Seelsorgeeinheit</h3>
+                                <p class="text-gray-700 leading-relaxed mb-4">
+                                    Die Seelsorgeeinheit Neckar-Baar umfasst mehrere Kirchengemeinden. Wir Ministranten arbeiten ortsübergreifend zusammen, unterstützen uns gegenseitig und feiern große Feste gemeinsam. 
+                                </p>
+                                <ul class="list-disc list-inside text-gray-700 space-y-2">
+                                    <li>St. Franziskus (VS-Schwenningen)</li>
+                                    <li>Mariä Himmelfahrt (VS-Schwenningen)</li>
+                                    <li>St. Otmar (VS-Weigheim)</li>
+                                    <li>St. Georg (VS-Mühlhausen)</li>
+                                    <li>St. Anna (VS-Tuningen)</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <img src="https://picsum.photos/seed/church/800/500" alt="Kirche" class="rounded-xl shadow-lg w-full h-auto object-cover">
+                            </div>
+                        </div>
+
+                        <h3 class="text-2xl font-bold text-center text-churchDark mb-8 border-b-2 border-churchGold pb-2 inline-block">Die Leitungsrunde</h3>
+                        <div id="leaders-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 text-center">
+                            <!-- Wird per JS dynamisch befüllt (bessere Flexibilität) -->
                         </div>
                     </div>
                 </section>
@@ -206,24 +312,110 @@
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-12">
                             <h2 class="text-4xl font-extrabold text-churchDark">Werde Teil unserer Gemeinschaft!</h2>
+                            <p class="mt-4 text-xl text-gray-600">Nach der Erstkommunion ist der perfekte Zeitpunkt, um bei uns einzusteigen.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
+                            <div>
+                                <h3 class="text-2xl font-bold text-churchRed mb-4">Warum Ministrant werden?</h3>
+                                <ul class="space-y-4">
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-check text-churchGold text-xl mt-1 mr-3"></i>
+                                        <div>
+                                            <h4 class="font-bold text-lg text-gray-800">Echte Gemeinschaft</h4>
+                                            <p class="text-gray-600">Finde neue Freunde über deine Schulklasse hinaus.</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-check text-churchGold text-xl mt-1 mr-3"></i>
+                                        <div>
+                                            <h4 class="font-bold text-lg text-gray-800">Gottesdienst aktiv mitgestalten</h4>
+                                            <p class="text-gray-600">Statt nur zuzuhören, bist du mittendrin und hast eine wichtige Aufgabe.</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-check text-churchGold text-xl mt-1 mr-3"></i>
+                                        <div>
+                                            <h4 class="font-bold text-lg text-gray-800">Action und Ausflüge</h4>
+                                            <p class="text-gray-600">Zeltlager, Europapark, Filmnächte – bei uns ist immer was los!</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-churchRed">
+                                <h3 class="text-2xl font-bold text-churchDark mb-4">Interesse? Melde dich an!</h3>
+                                <p class="text-sm text-gray-500 mb-6">Für Kinder und Eltern: Hinterlasst uns eure Kontaktdaten, und wir melden uns mit Infos zur nächsten Probe.</p>
+                                <form class="space-y-4" onsubmit="event.preventDefault(); alert('Vielen Dank für die Anfrage! Wir melden uns in Kürze.');">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Name des Kindes</label>
+                                        <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Alter</label>
+                                        <input type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">E-Mail (der Eltern)</label>
+                                        <input type="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border" required>
+                                    </div>
+                                    <button type="submit" class="w-full bg-churchRed text-white font-bold py-2 px-4 rounded hover:bg-red-800 transition">Infos anfordern</button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                            <h4 class="font-bold text-blue-800 text-lg mb-2"><i class="fa-solid fa-circle-info mr-2"></i>Informationen für Eltern</h4>
+                            <p class="text-blue-900 text-sm">Der Ministrantendienst ist freiwillig. Nach einer ca. 6-wöchigen Ausbildungsphase (Proben) findet die feierliche Aufnahme statt. Ein Dienstplan teilt die Kinder ca. 1-2 Mal im Monat für Gottesdienste ein. Bei allen unseren Aktionen gewährleisten geschulte Gruppenleiter die Aufsichtspflicht.</p>
                         </div>
                     </div>
                 </section>
 
-                <!-- 4. AKTUELLES & KALENDER -->
+                <!-- 4. AKTUELLES & KALENDER (Mit Ort-Tabs & dynamischem Import) -->
                 <section id="aktuelles" class="page-section bg-white py-12">
                     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-8">
                             <h2 class="text-4xl font-extrabold text-churchDark">Termine & Gottesdienstzeiten</h2>
+                            <p class="mt-4 text-xl text-gray-600">Das offizielle Programm der Seelsorgeeinheit Neckar-Baar.<br>Die Einteilung für die Gottesdienste findest du im <a href="#" onclick="navigate('intern')" class="text-churchRed underline hover:text-red-800">internen Bereich</a>.</p>
+                            
+                            <!-- Ladeanzeige für dynamischen Import -->
+                            <div id="events-loading-status" class="mt-4 text-sm font-semibold text-gray-500">
+                                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Termine werden aktualisiert...
+                            </div>
+                        </div>
+
+                        <!-- Tabs Navigation -->
+                        <div class="flex justify-center mb-8 border-b border-gray-200">
+                            <button onclick="switchTab('tab-datum')" id="btn-tab-datum" class="px-6 py-3 text-lg font-bold text-churchRed border-b-4 border-churchRed focus:outline-none transition-colors">Nach Datum</button>
+                            <button onclick="switchTab('tab-ort')" id="btn-tab-ort" class="px-6 py-3 text-lg font-bold text-gray-500 border-b-4 border-transparent hover:text-churchRed focus:outline-none transition-colors">Nach Ort</button>
+                        </div>
+
+                        <!-- TAB: DATUM (Dynamisch befüllt) -->
+                        <div id="tab-datum" class="space-y-4 mb-12 block">
+                            <!-- Wird per JS befüllt -->
+                        </div>
+
+                        <!-- TAB: ORT (Dynamisch befüllt) -->
+                        <div id="tab-ort" class="mb-12 hidden grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+                            <!-- Wird per JS befüllt -->
+                        </div>
+
+                        <!-- Info Box -->
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg mt-8 text-blue-900 text-sm shadow-sm">
+                            <strong>Hinweis:</strong> Wir Ministranten treffen uns für unseren Dienst in der Regel **15 Minuten** vor Beginn des Gottesdienstes in der Sakristei, um uns umzuziehen und einzuteilen.
                         </div>
                     </div>
                 </section>
 
-                <!-- 5. AKTIONEN & MEDIEN -->
+                <!-- 5. AKTIONEN & MEDIEN (Galerie dynamisch) -->
                 <section id="aktionen" class="page-section bg-gray-50 py-12">
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-12">
                             <h2 class="text-4xl font-extrabold text-churchDark">Aktionen & Gemeinschaft</h2>
+                            <p class="mt-4 text-xl text-gray-600">Einblicke in unser Minileben abseits des Altars.</p>
+                        </div>
+
+                        <div id="gallery-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Wird per JS dynamisch generiert -->
                         </div>
                     </div>
                 </section>
@@ -241,45 +433,162 @@
 
                         <!-- LOGIN CONTAINER -->
                         <div id="login-container" class="max-w-md mx-auto bg-gray-50 rounded-xl shadow-lg p-8 border border-gray-200">
+                            <p class="text-center text-gray-700 mb-6">Bitte gib das Passwort ein, um auf die Ministrantenpläne und internen Dokumente zuzugreifen.</p>
                             <form id="login-form" class="space-y-4">
-                                <input type="password" id="intern-pw" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-churchRed outline-none transition" placeholder="Passwort eingeben..." required>
-                                <p id="login-error" class="text-red-600 text-sm hidden font-semibold">Falsches Passwort!</p>
+                                <div>
+                                    <input type="password" id="intern-pw" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-churchRed focus:border-churchRed outline-none transition" placeholder="Passwort eingeben..." required>
+                                </div>
+                                <p id="login-error" class="text-red-600 text-sm hidden font-semibold">
+                                    <i class="fa-solid fa-triangle-exclamation mr-1"></i>Falsches Passwort! Bitte versuche es erneut.
+                                </p>
                                 <button type="submit" class="w-full bg-churchRed text-white font-bold py-3 px-4 rounded-lg hover:bg-red-800 transition shadow-md">
                                     Entsperren
                                 </button>
                             </form>
+                            <p class="text-xs text-center text-gray-500 mt-4">Tipp: Das Passwort gibt es bei der Gruppenleitung.</p>
                         </div>
 
-                        <!-- GESCHÜTZTER INHALT -->
+                        <!-- GESCHÜTZTER INHALT (Wird nach Login sichtbar) -->
                         <div id="protected-content" class="hidden">
+                            <!-- Erfolgsnachricht & Logout -->
                             <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-8 flex flex-col sm:flex-row justify-between items-center gap-4 rounded-r-lg shadow-sm">
                                 <p class="text-green-800 font-bold"><i class="fa-solid fa-circle-check mr-2"></i>Erfolgreich eingeloggt!</p>
-                                <button onclick="logoutIntern()" class="text-sm bg-white text-gray-700 hover:text-churchRed px-4 py-2 rounded border border-gray-300 transition shadow-sm font-semibold">Abmelden</button>
+                                <button onclick="logoutIntern()" class="text-sm bg-white text-gray-700 hover:text-churchRed px-4 py-2 rounded border border-gray-300 transition shadow-sm font-semibold">
+                                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Abmelden
+                                </button>
                             </div>
 
                             <h3 class="text-2xl font-bold text-churchDark mb-6 border-b-2 border-churchGold pb-2">Downloads & Dokumente</h3>
-                            
+                            <p class="text-gray-600 mb-8">Hier findest du allgemeine Vorlagen sowie die aktuellen Dienstpläne sortiert nach Gemeinde.</p>
+
+                            <!-- ALLGEMEINE DOKUMENTE (Übergreifend) -->
                             <div class="bg-blue-50 border-t-4 border-blue-500 rounded-xl p-6 shadow-md mb-10">
-                                <h4 class="text-xl font-bold text-blue-900 mb-4">Übergreifend für alle Gemeinden</h4>
-                                <p class="text-sm text-blue-800">Hier können allgemeine Dokumente verlinkt werden.</p>
+                                <h4 class="text-xl font-bold text-blue-900 mb-4"><i class="fa-solid fa-folder-open text-blue-500 mr-2"></i>Übergreifend für alle Gemeinden</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <!-- PDF Platzhalter 1 -->
+                                    <a href="dokumente/regeln_sakristei.pdf" target="_blank" class="flex items-center bg-white p-3 rounded-lg shadow-sm hover:shadow hover:bg-blue-100 border border-blue-100 transition group">
+                                        <i class="fa-regular fa-file-pdf text-3xl text-red-500 mr-4 group-hover:scale-110 transition-transform"></i>
+                                        <div>
+                                            <span class="block font-bold text-gray-800 text-sm group-hover:text-blue-900">Regeln in der Sakristei</span>
+                                            <span class="block text-xs text-gray-500">Allgemeiner Leitfaden</span>
+                                        </div>
+                                    </a>
+                                    <!-- PDF Platzhalter 2 -->
+                                    <a href="dokumente/einladung_zeltlager.pdf" target="_blank" class="flex items-center bg-white p-3 rounded-lg shadow-sm hover:shadow hover:bg-blue-100 border border-blue-100 transition group">
+                                        <i class="fa-regular fa-file-pdf text-3xl text-red-500 mr-4 group-hover:scale-110 transition-transform"></i>
+                                        <div>
+                                            <span class="block font-bold text-gray-800 text-sm group-hover:text-blue-900">Anmeldung Sommerlager</span>
+                                            <span class="block text-xs text-gray-500">Inklusive Packliste</span>
+                                        </div>
+                                    </a>
+                                    <!-- PDF Platzhalter 3 -->
+                                    <a href="dokumente/einverstaendniserklaerung.pdf" target="_blank" class="flex items-center bg-white p-3 rounded-lg shadow-sm hover:shadow hover:bg-blue-100 border border-blue-100 transition group">
+                                        <i class="fa-regular fa-file-pdf text-3xl text-red-500 mr-4 group-hover:scale-110 transition-transform"></i>
+                                        <div>
+                                            <span class="block font-bold text-gray-800 text-sm group-hover:text-blue-900">Einverständniserklärung</span>
+                                            <span class="block text-xs text-gray-500">Für Ausflüge (Eltern)</span>
+                                        </div>
+                                    </a>
+                                </div>
                             </div>
 
-                            <h4 class="text-xl font-bold text-churchDark mb-4">Dienstpläne nach Gemeinde</h4>
+                            <h4 class="text-xl font-bold text-churchDark mb-4"><i class="fa-solid fa-map-location-dot text-churchRed mr-2"></i>Dienstpläne nach Gemeinde</h4>
 
+                            <!-- GEMEINDEN GRID (Die 5 Kirchen) -->
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-t-4 border-churchRed">
-                                    <h4 class="font-bold text-gray-800 text-lg mb-3 border-b pb-2">St. Franziskus</h4>
+                                
+                                <!-- St. Franziskus -->
+                                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2">
+                                        <i class="fa-solid fa-church text-churchGold mr-2"></i> St. Franziskus
+                                    </h4>
+                                    <div class="space-y-2 flex-grow">
+                                        <a href="dokumente/plan_franziskus_aktuell" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group">
+                                            <i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i>
+                                            <div>
+                                                <span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span>
+                                            </div>
+                                        </a>
+                                        <a href="dokumente/plan_franziskus_naechster.pdf" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group">
+                                            <i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i>
+                                            <div>
+                                                <span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Nächster Monat</span>
+                                            </div>
+                                        </a>
+                                    </div>
                                 </div>
-                                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-t-4 border-churchRed">
-                                    <h4 class="font-bold text-gray-800 text-lg mb-3 border-b pb-2">Mariä Himmelfahrt</h4>
+
+                                <!-- Mariä Himmelfahrt -->
+                                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2">
+                                        <i class="fa-solid fa-church text-churchGold mr-2"></i> Mariä Himmelfahrt
+                                    </h4>
+                                    <div class="space-y-2 flex-grow">
+                                        <a href="dokumente/plan_himmelfahrt_aktuell.pdf" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group">
+                                            <i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i>
+                                            <div>
+                                                <span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span>
+                                            </div>
+                                        </a>
+                                        <a href="dokumente/plan_himmelfahrt_naechster.pdf" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group">
+                                            <i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i>
+                                            <div>
+                                                <span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Nächster Monat</span>
+                                            </div>
+                                        </a>
+                                    </div>
                                 </div>
-                                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-t-4 border-churchRed">
-                                    <h4 class="font-bold text-gray-800 text-lg mb-3 border-b pb-2">St. Otmar</h4>
+
+                                <!-- St. Otmar -->
+                                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2">
+                                        <i class="fa-solid fa-church text-churchGold mr-2"></i> St. Otmar
+                                    </h4>
+                                    <div class="space-y-2 flex-grow">
+                                        <a href="dokumente/plan_otmar.pdf" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group">
+                                            <i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i>
+                                            <div>
+                                                <span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- St. Anna -->
+                                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2">
+                                        <i class="fa-solid fa-church text-churchGold mr-2"></i> St. Anna
+                                    </h4>
+                                    <div class="space-y-2 flex-grow">
+                                        <a href="dokumente/plan_anna.pdf" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group">
+                                            <i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i>
+                                            <div>
+                                                <span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- St. Georg -->
+                                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2">
+                                        <i class="fa-solid fa-church text-churchGold mr-2"></i> St. Georg
+                                    </h4>
+                                    <div class="space-y-2 flex-grow">
+                                        <a href="dokumente/plan_georg.pdf" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group">
+                                            <i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i>
+                                            <div>
+                                                <span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span>
+                                            </div>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
+                            <!-- ENDE GEMEINDEN GRID -->
+
 
                             <!-- ======================================================================= -->
-                            <!-- VERSTECKTER OBERMINI-BEREICH -->
+                            <!-- NEU: VERSTECKTER OBERMINI-BEREICH (Dienstplan Generator)                -->
                             <!-- ======================================================================= -->
                             <div class="mt-16 pt-8 border-t border-gray-200 flex justify-end">
                                 <button onclick="toggleOberminiAuth()" class="text-gray-400 hover:text-churchRed transition text-sm flex items-center">
@@ -288,20 +597,20 @@
                             </div>
 
                             <!-- OBERMINI AUTHENTIFIZIERUNG -->
-                            <div id="obermini-auth-box" class="hidden mt-4 bg-gray-50 border border-gray-200 p-6 rounded-xl shadow-sm max-w-sm ml-auto">
+                            <div id="obermini-auth-box" class="hidden mt-4 bg-gray-50 border border-gray-200 p-6 rounded-xl shadow-sm max-w-sm ml-auto animate-[fadeIn_0.3s_ease-out]">
                                 <h4 class="font-bold text-gray-800 mb-2">Obermini Zugang</h4>
                                 <input type="password" id="om-pw-input" placeholder="Passwort..." class="w-full px-3 py-2 rounded border border-gray-300 mb-3 focus:border-churchRed outline-none">
                                 <p id="om-error" class="text-red-600 text-xs hidden mb-3">Falsches Passwort!</p>
-                                <button onclick="loginObermini()" class="bg-churchDark text-white px-4 py-2 rounded font-bold text-sm hover:bg-gray-800 w-full">Einloggen</button>
+                                <button onclick="loginObermini()" class="bg-churchDark text-white px-4 py-2 rounded font-bold text-sm hover:bg-gray-800 w-full transition">Einloggen</button>
                             </div>
 
                             <!-- OBERMINI WORKSPACE -->
-                            <div id="obermini-workspace" class="hidden mt-6 bg-white border-t-4 border-churchGold rounded-xl shadow-lg p-6 sm:p-8">
+                            <div id="obermini-workspace" class="hidden mt-6 bg-white border-t-4 border-churchGold rounded-xl shadow-lg p-6 sm:p-8 animate-[fadeIn_0.3s_ease-out]">
                                 <div class="flex justify-between items-center mb-8 border-b pb-4">
                                     <h3 class="text-2xl font-bold text-churchDark">
-                                        <i class="fa-solid fa-wand-magic-sparkles text-churchGold mr-2"></i>Dienstplan-Generator (St. Otmar)
+                                        <i class="fa-solid fa-wand-magic-sparkles text-churchGold mr-2"></i>Dienstplan-Generator (St. Otmar / Weigheim)
                                     </h3>
-                                    <button onclick="closeOberminiWorkspace()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-2xl"></i></button>
+                                    <button onclick="closeOberminiWorkspace()" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
                                 </div>
 
                                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -309,17 +618,17 @@
                                     <!-- LINKE SEITE: Datenbank & Sperrdaten -->
                                     <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
                                         <h4 class="font-bold text-lg mb-4 text-churchDark"><i class="fa-solid fa-users text-churchRed mr-2"></i>Ministranten & Sperrdaten</h4>
-                                        <p class="text-sm text-gray-500 mb-4">Hier eintragen, an welchen Daten (z.B. 12.04) ein Mini <b>nicht</b> kann.</p>
+                                        <p class="text-sm text-gray-500 mb-4">Hier eintragen, an welchen Daten (z.B. 12.04) ein Mini <b>nicht</b> kann. Die Änderungen werden lokal gespeichert.</p>
                                         
                                         <!-- Mini hinzufügen -->
                                         <div class="flex gap-2 mb-4">
-                                            <input type="text" id="new-mini-name" placeholder="Name neuer Ministrant..." class="flex-grow px-3 py-2 border rounded focus:border-churchRed outline-none text-sm">
-                                            <button onclick="addMiniToDB()" class="bg-churchRed text-white px-3 py-2 rounded font-bold hover:bg-red-800 text-sm"><i class="fa-solid fa-plus"></i></button>
+                                            <input type="text" id="new-mini-name" placeholder="Name neuer Ministrant..." class="flex-grow px-3 py-2 border border-gray-300 rounded focus:border-churchRed outline-none text-sm shadow-sm">
+                                            <button onclick="addMiniToDB()" class="bg-churchRed text-white px-4 py-2 rounded font-bold hover:bg-red-800 text-sm shadow-sm transition"><i class="fa-solid fa-plus"></i></button>
                                         </div>
 
                                         <!-- Liste der Minis MIT SPERRSPALTE -->
                                         <div class="max-h-96 overflow-y-auto pr-2 border-t pt-4 space-y-3" id="om-db-list">
-                                            <!-- Wird per JS befüllt -->
+                                            <!-- Wird per JS dynamisch befüllt -->
                                         </div>
                                     </div>
 
@@ -327,7 +636,7 @@
                                     <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 flex flex-col justify-between">
                                         <div>
                                             <h4 class="font-bold text-lg mb-4 text-churchDark"><i class="fa-solid fa-file-arrow-up text-churchRed mr-2"></i>Termine einlesen</h4>
-                                            <p class="text-sm text-gray-600 mb-4">Lade eine Word-Datei (.docx) oder Textdatei (.txt) hoch.</p>
+                                            <p class="text-sm text-gray-600 mb-4">Lade eine Word-Datei (.docx) oder Textdatei (.txt) hoch. Die KI filtert nach St. Otmar/Weigheim und ignoriert WGFs.</p>
                                             
                                             <!-- DRAG & DROP FELD -->
                                             <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-white hover:bg-gray-50 transition cursor-pointer mb-4">
@@ -337,16 +646,17 @@
                                                 <input type="file" id="file-input" accept=".txt, .docx, application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden">
                                             </div>
                                             
-                                            <textarea id="text-fallback" rows="3" class="w-full text-sm p-3 rounded border border-gray-300 focus:border-churchRed outline-none mb-4" placeholder="Oder kopierten Text hier einfügen..."></textarea>
+                                            <!-- FALLBACK TEXTFELD -->
+                                            <textarea id="text-fallback" rows="3" class="w-full text-sm p-3 rounded border border-gray-300 focus:border-churchRed outline-none mb-4 shadow-sm" placeholder="Oder kopierten Text hier einfügen..."></textarea>
                                             
                                             <div class="flex items-center justify-between mt-2">
-                                                <button onclick="processUpload()" class="bg-churchDark text-white font-bold py-2 px-4 rounded hover:bg-gray-800 transition shadow text-sm">Text scannen</button>
+                                                <button onclick="processUpload()" class="bg-churchDark text-white font-bold py-2 px-6 rounded hover:bg-gray-800 transition shadow text-sm">Text scannen</button>
                                                 <span class="text-sm font-bold text-gray-500" id="om-event-count">0 Termine erkannt</span>
                                             </div>
                                         </div>
                                         
-                                        <!-- PDF ERSTELLEN BUTTON (Wird erst klickbar/auffällig, wenn Termine erkannt wurden) -->
-                                        <div class="mt-8 pt-4 border-t border-gray-200">
+                                        <!-- PDF ERSTELLEN BUTTON (Wird erst klickbar, wenn Termine erkannt wurden) -->
+                                        <div class="mt-8 pt-6 border-t border-gray-200">
                                             <button onclick="generatePDF()" id="btn-generate-pdf" class="w-full bg-gray-300 text-gray-500 font-bold py-3 rounded-lg flex justify-center items-center transition cursor-not-allowed" disabled>
                                                 <i class="fa-solid fa-file-pdf mr-2 text-xl"></i> Dienstplan (PDF) erstellen
                                             </button>
@@ -355,111 +665,707 @@
 
                                 </div>
                             </div>
-                            <!-- ======================================================================= -->
-
+                            <!-- ENDE OBERMINI BEREICH -->
+                            
                         </div>
                     </div>
                 </section>
 
-                <section id="kontakt" class="page-section bg-gray-50 py-12"></section>
+                <!-- 7. KONTAKT -->
+                <section id="kontakt" class="page-section bg-gray-50 py-12">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="text-center mb-12">
+                            <h2 class="text-4xl font-extrabold text-churchDark">Kontakt</h2>
+                            <p class="mt-4 text-xl text-gray-600">Hast du Fragen? Schreib uns einfach!</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                            <!-- Contact Form -->
+                            <div class="bg-white p-8 rounded-xl shadow border border-gray-100">
+                                <form onsubmit="event.preventDefault(); alert('Nachricht gesendet!');" class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Dein Name</label>
+                                        <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">E-Mail Adresse</label>
+                                        <input type="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Betreff</label>
+                                        <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border">
+                                            <option>Allgemeine Frage</option>
+                                            <option>Ministrant werden</option>
+                                            <option>Zeltlager</option>
+                                            <option>Dienstplan</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Zusätzliche Info / Bemerkung</label>
+                                        <input type="text" placeholder="HIER INDIVIDUELLEN HINWEIS EINTRAGEN" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Nachricht</label>
+                                        <textarea rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border" required></textarea>
+                                    </div>
+                                    <button type="submit" class="w-full bg-churchRed text-white font-bold py-2 px-4 rounded hover:bg-red-800 transition">Nachricht senden</button>
+                                </form>
+                            </div>
+
+                            <!-- Contact Info & Map Placeholder -->
+                            <div class="space-y-8">
+                                <div>
+                                    <h3 class="text-2xl font-bold text-churchDark mb-4">Ansprechpartner</h3>
+                                    <div class="flex items-start mb-4">
+                                        <i class="fa-solid fa-location-dot text-churchRed text-xl mt-1 mr-4 w-6 text-center"></i>
+                                        <div>
+                                            <p class="font-bold text-gray-800">Katholisches Pfarramt Neckar-Baar</p>
+                                            <p class="text-gray-600">Kirchplatz 1<br>78xxx Musterstadt</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center mb-4">
+                                        <i class="fa-solid fa-phone text-churchRed text-xl mr-4 w-6 text-center"></i>
+                                        <p class="text-gray-600">07700 / 123 456</p>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fa-solid fa-envelope text-churchRed text-xl mr-4 w-6 text-center"></i>
+                                        <p class="text-churchRed font-semibold hover:underline cursor-pointer">minis@se-neckar-baar.de</p>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gray-200 w-full h-64 rounded-xl flex items-center justify-center shadow-inner relative overflow-hidden">
+                                    <img src="https://picsum.photos/seed/map/800/400" alt="Karte" class="w-full h-full object-cover opacity-50">
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                        <i class="fa-solid fa-map-location-dot text-4xl text-gray-600 mb-2"></i>
+                                        <span class="font-bold text-gray-700 bg-white/80 px-4 py-1 rounded">Interaktive Karte (Platzhalter)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
             </main>
+
+            <!-- FOOTER -->
+            <footer class="bg-churchDark text-gray-300 py-10 mt-auto">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+                    <div>
+                        <h4 class="text-white font-bold text-lg mb-4">Minis Neckar-Baar</h4>
+                        <p class="text-sm mb-4">Eine lebendige Gemeinschaft von Kindern und Jugendlichen in der katholischen Seelsorgeeinheit Neckar-Baar.</p>
+                        <div class="flex justify-center md:justify-start space-x-4">
+                            <a href="#" class="text-gray-400 hover:text-white text-xl transition"><i class="fa-brands fa-instagram"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-white text-xl transition"><i class="fa-brands fa-facebook"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-white text-xl transition"><i class="fa-brands fa-youtube"></i></a>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-white font-bold text-lg mb-4">Schnelllinks</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="#" onclick="navigate('home')" class="hover:text-churchGold transition">Startseite</a></li>
+                            <li><a href="#" onclick="navigate('aktuelles')" class="hover:text-churchGold transition">Termine & Gottesdienste</a></li>
+                            <li><a href="#" onclick="navigate('mitmachen')" class="hover:text-churchGold transition">Ministrant werden</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-white font-bold text-lg mb-4">Rechtliches</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="#" onclick="alert('Impressum...')" class="hover:text-white transition">Impressum</a></li>
+                            <li><a href="#" onclick="alert('Datenschutz...')" class="hover:text-white transition">Datenschutz</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </footer>
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
+    <!-- JAVASCRIPT LOGIC (Modular, Dynamisch, Flexibel) -->
     <script>
 // =========================================
-// STANDARD SEITEN-LOGIK
+// 1. KONFIGURATION & STATISCHE DATEN
 // =========================================
+
+const heroImageURL = "assets/HomeBanner.jpeg";
+
+const newsData =[
+    {
+        title: "Rückblick: Sommerlager 2025",
+        category: "Lagerbericht",
+        text: "Es war ein unvergessliches Wochenende mit Geländespielen, Lagerfeuer und toller Stimmung...",
+        image: "https://picsum.photos/seed/lager/100/100"
+    },
+    {
+        title: "Sternsingeraktion ein voller Erfolg",
+        category: "Aktion",
+        text: "Über 5.000 Euro konnten wir in diesem Jahr für Kinder in Not sammeln. Danke an alle Helfer!",
+        image: "https://picsum.photos/seed/stern/100/100"
+    }
+];
+
+const leadersData =[
+    { name: "Jill Manuel", role: "Oberministrant", text: "Dabei seit 2017. St. Otmar", img: "assets/Jill Manuel.jpeg" },
+    { name: "Simon", role: "Oberministrant", text: "Dabei seit 2017. St. Anna", img: "assets/Simon.jpeg" },
+    { name: "Vincent", role: "Oberministrant", text: "Dabei seit 2018. St. Franziskus", img: "assets/Vincent Steinman.jpeg" },
+    { name: "Paula", role: "Angeh. Oberministrantin", text: "St. Franziskus", img: "assets/ProfilbildAsthnd.jpeg" },
+    { name: "Rafael", role: "Angeh. Oberministrant", text: "St.Anna", img: "assets/ProfilbildAsthnd.jpeg" }
+];
+
+const galleryData =[
+    { title: "Sommerzeltlager", text: "Das Highlight jedes Jahres!", img: "https://picsum.photos/seed/zeltlager/400/300" },
+    { title: "Sternsinger", text: "Segen bringen, Segen sein.", img: "https://picsum.photos/seed/sternsinger/400/300" },
+    { title: "Kletterpark", text: "Miniausflug im Herbst.", img: "https://picsum.photos/seed/ausflug/400/300" }
+];
+
+// =========================================
+// 2. INITIALISIERUNG BEIM LADEN
+// =========================================
+document.addEventListener("DOMContentLoaded", () => {
+    initHero();
+    renderNews();
+    renderLeaders();
+    renderGallery();
+    
+    // Starte den 100% frischen Live-Abruf
+    fetchAndProcessLiveEvents();
+});
+
+function initHero() {
+    const banner = document.getElementById('hero-banner');
+    if(banner) banner.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url('${heroImageURL}')`;
+}
+
+function renderNews() {
+    const container = document.getElementById('news-container');
+    if(container) container.innerHTML = newsData.map(news => `
+        <div class="flex gap-4 items-start bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition">
+            <img src="${news.image}" alt="${news.title}" class="w-24 h-24 rounded-lg object-cover shadow">
+            <div>
+                <span class="text-xs font-bold text-churchGold uppercase tracking-wide">${news.category}</span>
+                <h4 class="text-lg font-bold text-gray-800 hover:text-churchRed cursor-pointer">${news.title}</h4>
+                <p class="text-sm text-gray-600 mt-1">${news.text}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderLeaders() {
+    const container = document.getElementById('leaders-container');
+    if(container) container.innerHTML = leadersData.map(l => `
+        <div class="bg-gray-50 rounded-xl p-6 shadow hover:shadow-md transition">
+            <img src="${l.img}" alt="${l.name}" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-churchRed object-cover">
+            <h4 class="font-bold text-lg">${l.name}</h4>
+            <p class="text-sm text-churchGold font-semibold">${l.role}</p>
+            <p class="text-xs text-gray-500 mt-2">${l.text}</p>
+        </div>
+    `).join('');
+}
+
+function renderGallery() {
+    const container = document.getElementById('gallery-container');
+    if(container) container.innerHTML = galleryData.map(g => `
+        <div class="group relative overflow-hidden rounded-xl shadow-lg cursor-pointer">
+            <img src="${g.img}" alt="${g.title}" class="w-full h-64 object-cover transform group-hover:scale-110 transition duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6">
+                <h3 class="text-white font-bold text-xl">${g.title}</h3>
+                <p class="text-gray-300 text-sm">${g.text}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+// =========================================
+// 3. 100% LIVE ABRUF & KI-PARSING
+// =========================================
+
+// Netzwerk-Sperren umgehen: Das Skript rotiert durch Server-Proxies, falls dein Browser blockt
+async function fetchRawHtml(targetUrl) {
+    const proxies =[
+        `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
+        `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`,
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
+    ];
+
+    for (let proxy of proxies) {
+        try {
+            const response = await fetch(proxy, { cache: "no-store" });
+            if (!response.ok) continue;
+
+            if (proxy.includes('allorigins')) {
+                const data = await response.json();
+                if(data.contents) return data.contents;
+            } else {
+                const text = await response.text();
+                if(text) return text;
+            }
+        } catch (e) {
+            console.warn(`Proxy ${proxy} blockiert, versuche nächsten...`);
+        }
+    }
+    throw new Error("Sicherheits- oder Netzwerkblockade. senb.de konnte über keinen Proxy erreicht werden.");
+}
+
+async function fetchAndProcessLiveEvents() {
+    const statusDiv = document.getElementById('events-loading-status');
+    if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Umgehe Blockaden und analysiere Live-Termine...`;
+
+    try {
+        const targetUrl = 'https://senb.de/gottesdienste/gottesdienstzeiten';
+        const htmlText = await fetchRawHtml(targetUrl);
+        
+        // 1. RADIKALE REINIGUNG: 
+        // Wir wandeln jeden HTML-Block (div, p, br, table) in Zeilenumbrüche um.
+        // Das zerstört das kaputte HTML der Kirchenseite und macht daraus ein sauberes Textdokument.
+        let html = htmlText.replace(/<(div|p|tr|li|ul|table|h[1-6]|br)[^>]*>/gi, '\n');
+        html = html.replace(/<\/(div|p|tr|li|ul|table|h[1-6])>/gi, '\n');
+        
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const plainText = doc.body.textContent;
+        const lines = plainText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        
+        let rawEvents =[];
+        let currentDate = null;
+        let currentEvent = null;
+
+        // 2. TEXT-VISION ALGORITHMUS:
+        // Das Skript liest von oben nach unten wie ein Mensch, statt nach HTML-Tags zu suchen.
+        for (let line of lines) {
+            // Unnötige Filter-Wörter der Webseite überspringen
+            if (line === "suchen" || line.includes("Alle Gottesdienstarten") || line.includes("Alle Gemeinden") || line.includes("Alle Zeiträume") || line.includes("Suche")) continue;
+
+            // Erkennt ein Datum? (z.B. 26.3.2026)
+            let dateMatch = line.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+            if (dateMatch && (line.match(/^(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)/i) || line.length < 30)) {
+                currentDate = `${dateMatch[3]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}`;
+                continue;
+            }
+
+            // Erkennt eine Uhrzeit? (z.B. 18:00 Uhr)
+            let timeMatch = line.match(/^(\d{1,2})[:\.](\d{2})(?:\s*Uhr)?/i);
+            if (timeMatch) {
+                // Sobald eine neue Uhrzeit auftaucht, wird der letzte fertige Termin gespeichert
+                if (currentEvent && currentEvent.title.length > 0) {
+                    rawEvents.push(currentEvent);
+                }
+                
+                let timeStr = `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
+                currentEvent = { date: currentDate, time: timeStr, location: "", title:[] };
+                
+                // Falls die Kirchenseite Zeit und Ort in EINE Zeile geschrieben hat
+                let rest = line.replace(timeMatch[0], '').trim();
+                if (rest) currentEvent.location = rest;
+                
+                continue;
+            }
+
+            // Alles was NACH einer Uhrzeit steht, muss Ort oder Titel sein
+            if (currentEvent) {
+                if (!currentEvent.location) {
+                    currentEvent.location = line; // 1. Zeile nach der Zeit ist meist der Ort
+                } else {
+                    currentEvent.title.push(line); // Alle folgenden Zeilen sind der Titel
+                }
+            }
+        }
+        
+        // Letzten Termin im Speicher nicht vergessen
+        if (currentEvent && currentEvent.title.length > 0) {
+            rawEvents.push(currentEvent);
+        }
+
+        const finalEvents =[];
+        const now = new Date();
+        now.setHours(0,0,0,0);
+
+        // 3. KATEGORISIERUNG & BEREINIGUNG
+        rawEvents.forEach(ev => {
+            if(!ev.date) return;
+            
+            ev.title = ev.title.join(' - '); // Füge mehrzeilige Titel zusammen
+            
+            // Wenn der Titel leer blieb, aber der Ort ellenlang ist (Website-Eingabefehler)
+            if (!ev.title && ev.location.length > 30) {
+                const parts = ev.location.split(/(?:,\s*(?=St\.|VS-)| - )/);
+                if(parts.length > 1) {
+                    ev.location = parts[0];
+                    ev.title = parts.slice(1).join(' - ');
+                }
+            }
+
+            if(!ev.location) ev.location = "Ort in der Seelsorgeeinheit";
+            if(!ev.title) ev.title = "Gottesdienst / Termin";
+
+            // Präzise KI-Sortierung für die Farben und Icons
+            let tLower = (ev.title + " " + ev.location).toLowerCase();
+            ev.category = "Gottesdienst"; 
+            if (tLower.includes('probe') || tLower.includes('ministranten')) ev.category = "Miniprobe";
+            else if (tLower.match(/beicht|versöhnung/)) ev.category = "Beichte";
+            else if (tLower.match(/rosenkranz|gebet|taizé|anbetung|andacht|vesper|laudes|morgenlob|friedensgebet/)) ev.category = "Gebet";
+            else if (tLower.match(/kreuzweg|ausflug|treffen|sitzung|wanderung/)) ev.category = "Aktion";
+            else if (tLower.match(/kroatisch|rum-orth|ukrainisch|tamilisch/)) ev.category = "Gastgemeinde";
+
+            // Zeitfilter: Zeige ALLES von HEUTE bis in 60 Tagen an. Alte Daten fliegen raus.
+            const evDate = new Date(`${ev.date}T00:00:00`);
+            const diffDays = Math.ceil((evDate - now) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays >= 0 && diffDays <= 60) {
+                finalEvents.push(ev);
+            }
+        });
+
+        if (finalEvents.length > 0) {
+            // Letzte Filterung von Duplikaten
+            const uniqueEvents = finalEvents.filter((v, i, a) => 
+                a.findIndex(t => (t.date === v.date && t.time === v.time && t.title === v.title && t.location === v.location)) === i
+            ).sort((a, b) => {
+                return new Date(`${a.date}T${a.time}:00`) - new Date(`${b.date}T${b.time}:00`);
+            });
+            
+            updateUI(uniqueEvents, true, `Erfolgreich geladen: ${uniqueEvents.length} Termine live aus senb.de`);
+        } else {
+            throw new Error("Live-Abruf war erfolgreich, aber im Text der Website wurden keine anstehenden Termine gefunden.");
+        }
+
+    } catch (error) {
+        // EHRLICHER ERROR: Keine erfundenen Daten!
+        console.error("Live-Abruf gescheitert:", error);
+        if(statusDiv) {
+            statusDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-600 mr-2"></i> <b>Fehler:</b> ${error.message}`;
+        }
+        updateUI([], false, "");
+    }
+}
+
+
+// =========================================
+// 4. RENDERING DER TERMINE IM HTML
+// =========================================
+function updateUI(events, isSuccess, message) {
+    const statusDiv = document.getElementById('events-loading-status');
+    if (isSuccess && statusDiv) {
+        statusDiv.innerHTML = `<i class="fa-solid fa-check text-green-600 font-bold mr-2"></i> <span class="text-green-800 font-bold">${message}</span>`;
+    }
+
+    renderNextEventsPreview(events);
+    renderEventsTabDatum(events);
+    renderEventsTabOrt(events);
+}
+
+// Rendert die Preview-Karten auf der Startseite
+function renderNextEventsPreview(events) {
+    const container = document.getElementById('next-events-container');
+    if (!container) return;
+
+    const upcomingEvents = events.slice(0, 4); 
+
+    if (upcomingEvents.length === 0) {
+        container.innerHTML = `
+            <li class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center shadow-sm">
+                <i class="fa-regular fa-calendar-xmark text-4xl text-gray-400 mb-2"></i>
+                <h4 class="font-bold text-gray-700">Keine Termine verfügbar</h4>
+                <p class="text-sm text-gray-500">Es konnten keine aktuellen Termine geladen werden.</p>
+            </li>`;
+        return;
+    }
+
+    container.innerHTML = upcomingEvents.map(ev => {
+        const d = new Date(ev.date);
+        const day = d.getDate().toString().padStart(2, '0');
+        const monthStr = d.toLocaleString('de-DE', { month: 'short' });
+        
+        let borderColor = "border-red-400";
+        if (ev.category === "Miniprobe") borderColor = "border-green-500";
+        else if (ev.category === "Beichte") borderColor = "border-purple-500";
+        else if (ev.category === "Gebet") borderColor = "border-blue-500";
+        else if (ev.category === "Aktion") borderColor = "border-yellow-500";
+        else if (ev.category === "Gastgemeinde") borderColor = "border-gray-400";
+
+        return `
+        <li class="bg-gray-50 rounded-lg p-4 flex items-center shadow-sm border-l-4 ${borderColor}">
+            <div class="bg-white p-2 rounded text-center min-w-[60px] shadow-sm mr-4">
+                <span class="block text-sm text-churchRed font-bold uppercase">${monthStr}</span>
+                <span class="block text-xl font-bold text-gray-800">${day}</span>
+            </div>
+            <div class="flex-grow">
+                <h4 class="font-bold text-gray-800 leading-tight">${ev.title}</h4>
+                <p class="text-sm text-gray-500 mt-1"><i class="fa-regular fa-clock mr-1"></i> ${ev.time} Uhr | <i class="fa-solid fa-location-dot ml-1 mr-1"></i> ${ev.location}</p>
+            </div>
+        </li>`;
+    }).join('');
+}
+
+// Rendert die große Listen-Ansicht (Nach Datum)
+function renderEventsTabDatum(events) {
+    const container = document.getElementById('tab-datum');
+    if (!container) return;
+
+    if (events.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center bg-gray-50 border border-gray-200 rounded-xl shadow-sm"><i class="fa-solid fa-calendar-xmark text-4xl text-gray-400 mb-4"></i><br><span class="font-bold text-gray-600 text-lg">Keine Termine gefunden</span></div>`;
+        return;
+    }
+
+    const grouped = events.reduce((acc, ev) => {
+        if (!acc[ev.date]) acc[ev.date] =[];
+        acc[ev.date].push(ev);
+        return acc;
+    }, {});
+
+    container.innerHTML = Object.keys(grouped).sort().map(dateStr => {
+        const dayEvents = grouped[dateStr];
+        const d = new Date(dateStr);
+        const niceDate = d.toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        const eventsHtml = dayEvents.map(ev => {
+            let badgeClass = "bg-red-100 text-red-800";
+            if (ev.category === "Miniprobe") badgeClass = "bg-green-100 text-green-800";
+            else if (ev.category === "Beichte") badgeClass = "bg-purple-100 text-purple-800";
+            else if (ev.category === "Gebet") badgeClass = "bg-blue-100 text-blue-800";
+            else if (ev.category === "Aktion") badgeClass = "bg-yellow-100 text-yellow-800";
+            else if (ev.category === "Gastgemeinde") badgeClass = "bg-gray-200 text-gray-800";
+
+            return `
+            <li class="py-4 hover:bg-gray-50 px-2 rounded-lg flex flex-col md:flex-row gap-4 md:items-center transition">
+                <div class="text-churchRed font-bold md:min-w-[110px] text-lg">${ev.time} Uhr</div>
+                <div class="flex-grow">
+                    <h4 class="font-bold text-gray-900 text-lg">${ev.title}</h4>
+                    <p class="text-gray-600 text-sm"><i class="fa-solid fa-location-dot mr-1"></i>${ev.location}</p>
+                </div>
+                <div class="md:text-right text-xs">
+                    <span class="${badgeClass} px-3 py-1 rounded-full font-bold shadow-sm">${ev.category}</span>
+                </div>
+            </li>`;
+        }).join('');
+
+        return `
+        <details class="group bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4" open>
+            <summary class="flex justify-between items-center font-bold cursor-pointer list-none p-5 bg-gray-50 hover:bg-gray-100 transition focus:outline-none">
+                <div class="flex items-center gap-3">
+                    <i class="fa-regular fa-calendar-days text-churchRed text-xl"></i>
+                    <span class="text-xl text-churchDark">${niceDate}</span>
+                </div>
+                <span class="transition-transform duration-300 group-open:rotate-180 text-churchRed">
+                    <i class="fa-solid fa-chevron-down text-xl"></i>
+                </span>
+            </summary>
+            <div class="p-5 border-t border-gray-200 bg-white">
+                <ul class="divide-y divide-gray-100">
+                    ${eventsHtml}
+                </ul>
+            </div>
+        </details>`;
+    }).join('');
+}
+
+// Rendert die Karten-Ansicht (Vollautomatisch Nach Ort)
+function renderEventsTabOrt(events) {
+    const container = document.getElementById('tab-ort');
+    if (!container) return;
+
+    if (events.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center bg-gray-50 border border-gray-200 rounded-xl w-full col-span-full shadow-sm"><i class="fa-solid fa-calendar-xmark text-4xl text-gray-400 mb-4"></i><br><span class="font-bold text-gray-600 text-lg">Keine Termine gefunden</span></div>`;
+        return;
+    }
+
+    // VOLLAUTOMATISCH: Das Skript liest JEDEN gefundenen Ort aus dem Array und baut für jeden eine Karte.
+    // Egal ob das nun St. Georg, ein Gemeindehaus oder ein komplett neuer Ort ist.
+    const grouped = events.reduce((acc, ev) => {
+        const loc = ev.location || "Weitere Orte";
+        if (!acc[loc]) acc[loc] =[];
+        acc[loc].push(ev);
+        return acc;
+    }, {});
+
+    container.innerHTML = Object.keys(grouped).sort().map(locName => {
+        const locEvents = grouped[locName];
+        
+        const eventsHtml = locEvents.map(ev => {
+            const d = new Date(ev.date);
+            const niceDateShort = d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+            
+            let borderClass = "border-red-400";
+            if (ev.category === "Miniprobe") borderClass = "border-green-500";
+            else if (ev.category === "Beichte") borderClass = "border-purple-500";
+            else if (ev.category === "Gebet") borderClass = "border-blue-500";
+            else if (ev.category === "Aktion") borderClass = "border-yellow-500";
+            else if (ev.category === "Gastgemeinde") borderClass = "border-gray-400";
+
+            return `
+            <li class="flex flex-col border-l-2 ${borderClass} pl-3 mb-3">
+                <span class="text-sm font-bold text-churchRed">${niceDateShort} | ${ev.time} Uhr</span>
+                <span class="text-gray-800 font-semibold text-sm">${ev.title}</span>
+            </li>`;
+        }).join('');
+
+        return `
+        <div class="bg-white rounded-xl shadow-md border-t-4 border-churchRed p-6 w-full h-full flex flex-col">
+            <h3 class="text-xl font-bold text-churchDark mb-4 border-b pb-2 leading-tight">
+                <i class="fa-solid fa-church text-churchGold mr-2"></i>${locName}
+            </h3>
+            <ul class="space-y-1 flex-grow">
+                ${eventsHtml}
+            </ul>
+        </div>`;
+    }).join('');
+}
+
+// =========================================
+// 5. UI INTERAKTIONEN (TABS, NAVIGATION, LOGIN)
+// =========================================
+function switchTab(tabId) {
+    document.getElementById('tab-datum').classList.replace('block', 'hidden');
+    document.getElementById('tab-ort').classList.add('hidden');
+    document.getElementById('tab-ort').classList.replace('grid', 'hidden'); 
+    
+    document.getElementById('btn-tab-datum').classList.replace('border-churchRed', 'border-transparent');
+    document.getElementById('btn-tab-datum').classList.replace('text-churchRed', 'text-gray-500');
+    
+    document.getElementById('btn-tab-ort').classList.replace('border-churchRed', 'border-transparent');
+    document.getElementById('btn-tab-ort').classList.replace('text-churchRed', 'text-gray-500');
+
+    if(tabId === 'tab-datum') {
+        document.getElementById('tab-datum').classList.replace('hidden', 'block');
+        document.getElementById('btn-tab-datum').classList.replace('border-transparent', 'border-churchRed');
+        document.getElementById('btn-tab-datum').classList.replace('text-gray-500', 'text-churchRed');
+    } else {
+        document.getElementById('tab-ort').classList.remove('hidden');
+        document.getElementById('tab-ort').classList.add('grid');
+        document.getElementById('btn-tab-ort').classList.replace('border-transparent', 'border-churchRed');
+        document.getElementById('btn-tab-ort').classList.replace('text-gray-500', 'text-churchRed');
+    }
+}
+
+const mobileBtn = document.getElementById('mobile-menu-btn');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+
+if(mobileBtn) mobileBtn.addEventListener('click', toggleSidebar);
+
+function toggleSidebar() {
+    const isClosed = sidebar.classList.contains('-translate-x-full');
+    if (isClosed) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+    }
+}
+
 function navigate(pageId) {
-    document.querySelectorAll('.page-section').forEach(section => section.classList.remove('active'));
+    document.querySelectorAll('.page-section').forEach(section => {
+        section.classList.remove('active');
+    });
     document.getElementById(pageId).classList.add('active');
     
     document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('bg-red-50', 'text-churchRed', 'bg-yellow-50');
-        if(!link.classList.contains('text-churchGold')) link.classList.add('text-gray-700');
+        if(!link.classList.contains('text-churchGold')) {
+            link.classList.add('text-gray-700');
+        }
     });
     
     const activeLink = document.querySelector(`.nav-link-${pageId}`);
     if(activeLink) {
         activeLink.classList.remove('text-gray-700');
-        if (pageId === 'intern') activeLink.classList.add('bg-yellow-50');
-        else activeLink.classList.add('bg-red-50', 'text-churchRed');
+        if (pageId === 'intern') {
+            activeLink.classList.add('bg-yellow-50');
+        } else {
+            activeLink.classList.add('bg-red-50', 'text-churchRed');
+        }
     }
+
+    if (window.innerWidth < 768) { 
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+    }
+    
     document.getElementById('main-scroll-area').scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    sidebar.classList.toggle('-translate-x-full');
-    overlay.classList.toggle('hidden');
-}
-
+// LOGIK FÜR DEN INTERNEN BEREICH (NICHT die globale Sperre)
 const loginForm = document.getElementById('login-form');
+const loginContainer = document.getElementById('login-container');
+const protectedContent = document.getElementById('protected-content');
+const errorMsg = document.getElementById('login-error');
+
 if(loginForm) {
     loginForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        if(document.getElementById('intern-pw').value === 'johnundschmollisminis26') {
-            document.getElementById('login-container').classList.add('hidden');
-            document.getElementById('protected-content').classList.remove('hidden');
-            document.getElementById('protected-content').classList.add('block');
-            document.getElementById('login-error').classList.add('hidden');
+        const pw = document.getElementById('intern-pw').value;
+        if(pw === 'johnundschmollisminis26') {
+            loginContainer.classList.add('hidden');
+            protectedContent.classList.remove('hidden');
+            protectedContent.classList.add('block');
+            errorMsg.classList.add('hidden');
+            document.getElementById('intern-pw').value = '';
         } else {
-            document.getElementById('login-error').classList.remove('hidden');
+            errorMsg.classList.remove('hidden');
         }
     });
 }
 
 function logoutIntern() {
-    document.getElementById('protected-content').classList.add('hidden');
-    document.getElementById('protected-content').classList.remove('block');
-    document.getElementById('login-container').classList.remove('hidden');
-    document.getElementById('intern-pw').value = '';
-    closeOberminiWorkspace();
+    protectedContent.classList.add('hidden');
+    protectedContent.classList.remove('block');
+    loginContainer.classList.remove('hidden');
+    
+    // NEU: Schließe auch den Obermini-Bereich, wenn er offen war
+    if(typeof closeOberminiWorkspace === 'function') {
+        closeOberminiWorkspace();
+    }
 }
 
-// =========================================
-// OBERMINI VERWALTUNG & KI-SCANNER
-// =========================================
+// =================================================================================================
+// =================================================================================================
+// 6. NEU: OBERMINI VERWALTUNG, LOKALE DATENBANK, WORD-UPLOAD & PDF GENERATOR
+// =================================================================================================
+// =================================================================================================
 
 let minisDB = [];
-let extractedEvents = [];
+let extractedEventsObermini = []; // Um Namenskonflikte mit der Startseite zu vermeiden
 
-// 1. OBERMINI LOGIN
+// --- A. OBERMINI LOGIN STEUERUNG ---
 function toggleOberminiAuth() {
     document.getElementById('obermini-auth-box').classList.toggle('hidden');
 }
 
 function loginObermini() {
-    if(document.getElementById('om-pw-input').value === 'obermini2026') {
+    const pw = document.getElementById('om-pw-input').value;
+    if(pw === 'obermini2026') { // HIER DAS PASSWORT FÜR OBERMINIS
         document.getElementById('obermini-auth-box').classList.add('hidden');
         document.getElementById('obermini-workspace').classList.remove('hidden');
         document.getElementById('om-pw-input').value = '';
-        initMinisDB();
+        initMinisDB(); // Lade Datenbank beim Öffnen
     } else {
         document.getElementById('om-error').classList.remove('hidden');
     }
 }
 
 function closeOberminiWorkspace() {
-    document.getElementById('obermini-workspace').classList.add('hidden');
-    document.getElementById('obermini-auth-box').classList.add('hidden');
-    extractedEvents = [];
+    const workspace = document.getElementById('obermini-workspace');
+    if(workspace) workspace.classList.add('hidden');
+    const authBox = document.getElementById('obermini-auth-box');
+    if(authBox) authBox.classList.add('hidden');
+    
+    extractedEventsObermini = [];
+    if(document.getElementById('text-fallback')) document.getElementById('text-fallback').value = '';
     updatePdfButtonState();
 }
 
-// 2. DATENBANK & SPERRDATEN ANZEIGE
+// --- B. DATENBANK LOGIK (LocalStorage inkl. Sperrdaten) ---
 function initMinisDB() {
-    const stored = localStorage.getItem('senb_otmar_minis');
+    const stored = localStorage.getItem('senb_otmar_minis_v2');
     if (stored) {
         minisDB = JSON.parse(stored);
     } else {
+        // Standardwerte eintragen, falls noch nie genutzt
         minisDB = [
             { id: 1, name: "Jill Manuel", blocked: "" },
             { id: 2, name: "Simon", blocked: "" },
-            { id: 3, name: "Vincent", blocked: "" }
+            { id: 3, name: "Vincent", blocked: "" },
+            { id: 4, name: "Paula", blocked: "" },
+            { id: 5, name: "Rafael", blocked: "" }
         ];
         saveMinisDB();
     }
@@ -472,21 +1378,23 @@ function saveMinisDB() {
         const input = document.getElementById(`sperr-${m.id}`);
         if(input) m.blocked = input.value;
     });
-    localStorage.setItem('senb_otmar_minis', JSON.stringify(minisDB));
+    localStorage.setItem('senb_otmar_minis_v2', JSON.stringify(minisDB));
 }
 
 function renderMiniList() {
     const container = document.getElementById('om-db-list');
+    if(!container) return;
+    
     container.innerHTML = minisDB.map(mini => `
         <div class="bg-white p-3 rounded shadow-sm border border-gray-200 flex flex-col gap-2 relative group">
             <div class="flex justify-between items-center">
                 <span class="font-bold text-sm text-churchDark"><i class="fa-solid fa-user text-churchGold mr-2"></i>${mini.name}</span>
-                <button onclick="deleteMini(${mini.id})" class="text-red-400 hover:text-red-600 transition"><i class="fa-solid fa-trash-can"></i></button>
+                <button onclick="deleteMini(${mini.id})" class="text-red-400 hover:text-red-600 transition" title="Ministrant löschen"><i class="fa-solid fa-trash-can"></i></button>
             </div>
-            <!-- SPERRSPALTE DIREKT HIER -->
+            <!-- Sperrspalte direkt unter dem Namen -->
             <div class="flex items-center">
-                <span class="text-xs text-gray-500 w-24">Sperrdaten:</span>
-                <input type="text" id="sperr-${mini.id}" value="${mini.blocked || ''}" onchange="saveMinisDB()" class="flex-grow bg-gray-50 border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:border-churchRed" placeholder="z.B. 12.04, 25.04">
+                <span class="text-xs text-gray-500 w-20">Sperrdaten:</span>
+                <input type="text" id="sperr-${mini.id}" value="${mini.blocked || ''}" onchange="saveMinisDB()" class="flex-grow bg-gray-50 border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:border-churchRed shadow-inner" placeholder="z.B. 12.04, 25.04">
             </div>
         </div>
     `).join('');
@@ -494,8 +1402,8 @@ function renderMiniList() {
 
 function addMiniToDB() {
     const input = document.getElementById('new-mini-name');
-    if(input.value.trim()) {
-        saveMinisDB(); // Vorherige sichern
+    if(input && input.value.trim()) {
+        saveMinisDB(); // Vorherige Sperrdaten sichern, bevor neu gerendert wird
         minisDB.push({ id: Date.now(), name: input.value.trim(), blocked: "" });
         saveMinisDB();
         input.value = '';
@@ -504,14 +1412,14 @@ function addMiniToDB() {
 }
 
 function deleteMini(id) {
-    if(confirm("Möchtest du diesen Ministranten löschen?")) {
+    if(confirm("Möchtest du diesen Ministranten wirklich aus der Datenbank löschen?")) {
         minisDB = minisDB.filter(m => m.id !== id);
         saveMinisDB();
         renderMiniList();
     }
 }
 
-// 3. DATEI UPLOAD (.TXT & .DOCX) & SCAN
+// --- C. DATEI UPLOAD (.TXT & .DOCX) & KI TEXT SCANNER ---
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
 
@@ -534,30 +1442,38 @@ if(fileInput) {
 
 function handleFile(file) {
     const fileName = file.name.toLowerCase();
+    
+    // Hinweis-Reset
+    document.getElementById('om-event-count').innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Lese Datei...";
 
-    // WENN ES EINE WORD DATEI IST (.docx)
+    // 1. WENN ES EINE WORD DATEI IST (.docx)
     if (fileName.endsWith('.docx')) {
         const reader = new FileReader();
         reader.onload = function(e) {
             const arrayBuffer = e.target.result;
-            // Mammoth.js wandelt Word in reinen Text um
+            // Mammoth.js wandelt das Word Dokument in reinen Text um
+            if(typeof mammoth === 'undefined') {
+                alert("Fehler: Mammoth.js (Word-Reader) wurde nicht geladen. Prüfe deine Internetverbindung.");
+                return;
+            }
             mammoth.extractRawText({arrayBuffer: arrayBuffer})
                 .then(function(result){
                     document.getElementById('text-fallback').value = result.value; // Text ins Textfeld packen
-                    processText(result.value);
+                    processOberminiText(result.value);
                 })
                 .catch(function(err){
                     alert("Fehler beim Lesen der Word-Datei: " + err.message);
+                    document.getElementById('om-event-count').innerHTML = "Fehler beim Lesen.";
                 });
         };
         reader.readAsArrayBuffer(file);
     } 
-    // WENN ES EINE TEXTDATEI IST (.txt)
+    // 2. WENN ES EINE TEXTDATEI IST (.txt)
     else {
         const reader = new FileReader();
         reader.onload = function(e) { 
             document.getElementById('text-fallback').value = e.target.result;
-            processText(e.target.result); 
+            processOberminiText(e.target.result); 
         };
         reader.readAsText(file);
     }
@@ -565,11 +1481,14 @@ function handleFile(file) {
 
 function processUpload() {
     const text = document.getElementById('text-fallback').value;
-    if(text.trim().length > 10) processText(text);
-    else alert("Bitte füge Text ein oder lade eine Datei hoch.");
+    if(text.trim().length > 10) {
+        processOberminiText(text);
+    } else {
+        alert("Bitte füge Text ein oder lade eine Datei hoch.");
+    }
 }
 
-function processText(rawText) {
+function processOberminiText(rawText) {
     const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     let events = [];
     let currentDate = "Unbekannt";
@@ -577,6 +1496,7 @@ function processText(rawText) {
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
         
+        // Datumssuche (z.B. 12.04.2026)
         let dateMatch = line.match(/(\d{1,2})\.(\d{1,2})\.(?:\d{4})?/);
         if(dateMatch && (line.match(/^(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)/i) || line.length < 30)) {
             currentDate = dateMatch[0];
@@ -584,30 +1504,37 @@ function processText(rawText) {
             continue;
         }
 
+        // Zeitsuche (z.B. 18:00)
         let timeMatch = line.match(/^(\d{1,2})[:\.](\d{2})/);
         if (timeMatch) {
             let time = `${timeMatch[1].padStart(2,'0')}:${timeMatch[2]}`;
             let context = line + " " + (lines[i+1] || "");
             
+            // KI FILTER LOGIK FÜR OBERMINIS
             const isTargetLocation = context.match(/weigheim|otmar/i);
             const isWGF = context.match(/wgf|wort-gottes-feier|wortgottesfeier/i);
 
+            // Nur speichern, wenn Otmar/Weigheim drin vorkommt und KEIN WGF ist
             if (isTargetLocation && !isWGF) {
                 let typeText = line.replace(timeMatch[0], '').replace(/Uhr/i, '').trim();
                 if(typeText.length < 3) typeText = lines[i+1];
                 
-                events.push({ date: currentDate, time: time, type: typeText.substring(0, 60) });
+                events.push({
+                    date: currentDate,
+                    time: time,
+                    type: typeText.substring(0, 60)
+                });
             }
         }
     }
 
-    extractedEvents = events;
+    extractedEventsObermini = events;
     const countLabel = document.getElementById('om-event-count');
     
     if(events.length === 0) {
-        countLabel.innerHTML = "<span class='text-red-500'>Keine passenden Termine gefunden!</span>";
+        countLabel.innerHTML = "<span class='text-red-500'>Keine passenden Termine gefunden! (WGF ignoriert)</span>";
     } else {
-        countLabel.innerHTML = `<span class='text-green-600'>${events.length} Termine erkannt!</span>`;
+        countLabel.innerHTML = `<span class='text-green-600 bg-green-100 px-2 py-1 rounded border border-green-200'>${events.length} Termine erkannt!</span>`;
     }
     
     updatePdfButtonState();
@@ -615,7 +1542,7 @@ function processText(rawText) {
 
 function updatePdfButtonState() {
     const btn = document.getElementById('btn-generate-pdf');
-    if(extractedEvents.length > 0) {
+    if(extractedEventsObermini.length > 0) {
         btn.disabled = false;
         btn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
         btn.classList.add('bg-churchGold', 'text-churchDark', 'hover:bg-yellow-500', 'shadow-lg');
@@ -626,24 +1553,27 @@ function updatePdfButtonState() {
     }
 }
 
-// 4. PDF GENERIERUNG
+// --- D. PDF GENERIERUNG ---
 function generatePDF() {
-    saveMinisDB(); // Stellt sicher, dass die Sperrdaten aktuell ausgelesen wurden
+    saveMinisDB(); // Stellt sicher, dass auch gerade eben erst eingetippte Sperrdaten verarbeitet werden
 
     let finalSchedule = [];
     
-    extractedEvents.forEach(ev => {
-        let evShortDate = ev.date.substring(0,5); 
+    // Zuteilung
+    extractedEventsObermini.forEach(ev => {
+        let evShortDate = ev.date.substring(0,5); // Aus "12.04.2026" wird "12.04"
         
         let available = minisDB.filter(m => {
-            if(!m.blocked) return true;
-            return !m.blocked.includes(evShortDate);
+            if(!m.blocked) return true; // Hat keine Sperrdaten
+            return !m.blocked.includes(evShortDate); // Datum kommt nicht in Sperrdaten vor
         });
 
+        // Durchmischen, damit nicht immer dieselben eingeteilt werden
         available = available.sort(() => 0.5 - Math.random());
         
+        // Immer 2 Minis nehmen
         let assignedNames = available.slice(0, 2).map(m => m.name).join(' und ');
-        if(!assignedNames) assignedNames = "---";
+        if(!assignedNames) assignedNames = "--- FEHLT ---";
 
         finalSchedule.push([
             `${ev.date}\n${ev.time} Uhr`,
@@ -652,6 +1582,7 @@ function generatePDF() {
         ]);
     });
 
+    // jsPDF Erstellung
     if (typeof window.jspdf === 'undefined') {
         alert("Fehler: PDF Bibliothek konnte nicht geladen werden.");
         return;
@@ -660,28 +1591,37 @@ function generatePDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
+    // PDF Styling (Kopfzeile)
     doc.setFontSize(18);
-    doc.setTextColor(185, 28, 28);
+    doc.setTextColor(185, 28, 28); // churchRed
     doc.text("Dienstplan Ministranten", 14, 20);
+    
     doc.setFontSize(12);
     doc.setTextColor(50, 50, 50);
     doc.text("St. Otmar / Weigheim", 14, 28);
 
+    let now = new Date().toLocaleDateString('de-DE');
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Automatisch generiert am: ${now}`, 14, 33);
+
+    // Tabelle
     doc.autoTable({
-        startY: 35,
+        startY: 38,
         head: [['Datum & Uhrzeit', 'Art der Feier', 'Eingeteilte Minis']],
         body: finalSchedule,
         theme: 'striped',
-        headStyles: { fillColor: [31, 41, 55] },
+        headStyles: { fillColor: [31, 41, 55] }, // churchDark
         alternateRowStyles: { fillColor: [249, 250, 251] },
         styles: { font: 'helvetica', fontSize: 10, cellPadding: 5, valign: 'middle' },
         columnStyles: {
-            0: { cellWidth: 40, fontStyle: 'bold' },
+            0: { cellWidth: 35, fontStyle: 'bold' },
             1: { cellWidth: 'auto' },
-            2: { cellWidth: 60, fontStyle: 'bold', textColor: [185, 28, 28] }
+            2: { cellWidth: 70, fontStyle: 'bold', textColor: [185, 28, 28] } // churchRed
         }
     });
 
+    // Download anstoßen
     doc.save('Dienstplan_Otmar.pdf');
 }
     </script>
