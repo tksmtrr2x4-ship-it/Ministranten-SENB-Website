@@ -1228,6 +1228,7 @@ function deleteMini(id) {
 
 // --- EXCEL UPLOAD & SMART KI SCANNER ---
 // --- EXCEL UPLOAD & LOKALE MUSTERERKENNUNGS-KI ---
+// --- EXCEL UPLOAD & SPEZIELL TRAINIERTE LOKALE KI ---
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
 
@@ -1250,7 +1251,7 @@ if(fileInput) {
 
 function handleFile(file) {
     const fileName = file.name.toLowerCase();
-    document.getElementById('om-event-count').innerHTML = "<i class='fa-solid fa-spinner fa-spin text-churchRed'></i> Analysiere Struktur...";
+    document.getElementById('om-event-count').innerHTML = "<i class='fa-solid fa-spinner fa-spin text-churchRed'></i> Analysiere Tabellenstruktur...";
 
     if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
         const reader = new FileReader();
@@ -1260,28 +1261,22 @@ function handleFile(file) {
                 const workbook = XLSX.read(data, {type: 'array'});
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 
-                // SUPER-VISION: Verbundene Zellen (Merged Cells) auflösen!
-                // Dadurch gehen keine Daten mehr verloren, wenn der Pfarrer Zeilen verbindet.
+                // WICHTIG: Verbundene Zellen auflösen (z.B. Datum über 2 Zeilen)
                 if (firstSheet['!merges']) {
                     firstSheet['!merges'].forEach(merge => {
                         let topLeftCell = firstSheet[XLSX.utils.encode_cell({c: merge.s.c, r: merge.s.r})];
                         if (!topLeftCell) return;
-                        
-                        // Kopiere den Wert der ersten Zelle in alle versteckten Zellen darunter
                         for (let R = merge.s.r; R <= merge.e.r; ++R) {
                             for (let C = merge.s.c; C <= merge.e.c; ++C) {
                                 let targetCell = XLSX.utils.encode_cell({c: C, r: R});
-                                if (!firstSheet[targetCell]) {
-                                    firstSheet[targetCell] = Object.assign({}, topLeftCell);
-                                }
+                                if (!firstSheet[targetCell]) firstSheet[targetCell] = Object.assign({}, topLeftCell);
                             }
                         }
                     });
                 }
                 
-                // raw: false erzwingt, dass Excel-Zahlen als echtes formatiertes Datum gelesen werden
                 const rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, raw: false, defval: ""});
-                runLocalVisionAI(rows);
+                runTrainedExcelAI(rows);
             } catch (err) {
                 alert("Fehler beim Lesen der Excel-Datei: " + err.message);
                 document.getElementById('om-event-count').innerHTML = "Fehler beim Lesen.";
@@ -1297,86 +1292,112 @@ function processUpload() {
     const text = document.getElementById('text-fallback').value;
     if(text.trim().length > 10) {
         const rows = text.split('\n').map(line => line.split('\t'));
-        runLocalVisionAI(rows);
+        runTrainedExcelAI(rows);
     } else {
         alert("Bitte lade eine Excel-Datei hoch oder füge Daten ein.");
     }
 }
 
-// LOKALE "VISION-KI" FÜR EXCEL TABELLEN
-function runLocalVisionAI(rows) {
+// KI: SPEZIELL TRAINIERT AUF DAS NECKAR-BAAR PFARRPLAN-LAYOUT
+function runTrainedExcelAI(rows) {
     let events = [];
     let lastFoundDate = "Unbekannt";
+    let lastFoundEventTitleFromDate = "";
+    
+    let targetColIndex = -1;
+    let dateColIndex = 0; // Spalte A (0) ist fast immer das Datum
 
-    for (let y = 0; y < rows.length; y++) {
+    // 1. ÜBERSCHRIFTEN-ANALYSE: Finde die Spalte für Weigheim/Otmar
+    for (let i = 0; i < Math.min(5, rows.length); i++) {
+        for (let j = 0; j < rows[i].length; j++) {
+            let cellText = String(rows[i][j]).toLowerCase();
+            if (cellText.includes("weigheim") || cellText.includes("otmar")) {
+                targetColIndex = j;
+            }
+        }
+    }
+
+    // Fallback, falls die Überschrift fehlt: Nimm einfach Spalte B (1)
+    if (targetColIndex === -1) targetColIndex = 1;
+
+    // 2. ZEILEN-ANALYSE
+    for (let y = 1; y < rows.length; y++) { // Starte bei 1, um Header zu überspringen
         let row = rows[y];
         if (!row || row.length === 0) continue;
 
-        let rowStr = row.join(" ").replace(/\s+/g, ' ').trim();
-        if (rowStr.length < 2) continue;
+        let dateCell = String(row[dateColIndex] || "").trim();
+        let targetCell = String(row[targetColIndex] || "").trim();
 
-        // Datum suchen
-        let dateMatch = rowStr.match(/\b(\d{1,2})\.(\d{1,2})\.(?:\d{2,4})?\b/);
+        // Wenn in der Ziel-Zelle nur ein "-" steht oder sie leer ist -> Überspringen
+        if (!targetCell || targetCell === "-" || targetCell === "") continue;
+
+        // A. DATUM EXTRAHIEREN (aus Spalte A)
+        let dateMatch = dateCell.match(/\b(\d{1,2})\.(\d{1,2})\.(?:\d{2,4})?\b/);
         if (dateMatch) {
             lastFoundDate = dateMatch[0];
             if(!lastFoundDate.match(/\d{4}/)) lastFoundDate = `${dateMatch[1].padStart(2,'0')}.${dateMatch[2].padStart(2,'0')}.`;
+            
+            // Suche nach Sondernamen in der Datumsspalte, z.B. "(Gründonnerstag)"
+            let titleMatch = dateCell.match(/\((.*?)\)/);
+            if (titleMatch && titleMatch[1]) {
+                lastFoundEventTitleFromDate = titleMatch[1].trim();
+            } else {
+                lastFoundEventTitleFromDate = "";
+            }
         }
 
-        // Zeit suchen
-        let timeMatch = rowStr.match(/\b(\d{1,2})[:\.](\d{2})\b/);
+        // B. UHRZEIT & TITEL EXTRAHIEREN (aus der Weigheim-Spalte)
+        let timeMatch = targetCell.match(/\b(\d{1,2})[:\.](\d{2})\b/);
         
         if (timeMatch) {
             let time = `${timeMatch[1].padStart(2,'0')}:${timeMatch[2]}`;
             
-            // Umfeld-Analyse (Kontext aufbauen aus der aktuellen und den umgebenden Zeilen)
-            let contextArr = [];
-            if (y > 0) contextArr.push(rows[y-1].join(" "));
-            contextArr.push(rowStr);
-            if (y < rows.length - 1) contextArr.push(rows[y+1].join(" "));
-            
-            let fullContext = contextArr.join(" | ").toLowerCase();
+            // Bereinige den Text in der Zelle, um den Gottesdienstnamen zu erhalten
+            let typeText = targetCell
+                .replace(timeMatch[0], '')     // Uhrzeit entfernen
+                .replace(/uhr/ig, '')          // "Uhr" entfernen
+                .replace(/[\(\)]/g, '')        // Klammern entfernen z.B. bei (EKO)
+                .trim();
 
-            // FILTER: Otmar / Weigheim JA, WGF NEIN
-            let isTargetLocation = fullContext.includes("weigheim") || fullContext.includes("otmar");
-            let isWGF = fullContext.includes("wgf") || fullContext.includes("wort-gottes") || fullContext.includes("wortgottes");
+            // Wenn in der Zelle nur die Uhrzeit stand (Text ist leer), 
+            // nimm den Namen aus der Datumsspalte (z.B. "Ostersonntag")
+            if (typeText.length < 3 && lastFoundEventTitleFromDate.length > 2) {
+                typeText = lastFoundEventTitleFromDate;
+            }
 
-            if (isTargetLocation && !isWGF) {
-                
-                let typeText = rowStr
-                    .replace(timeMatch[0], '') 
-                    .replace(/uhr/i, '')
-                    .replace(lastFoundDate, '')  
-                    .replace(/weigheim|st\.\s*otmar|otmar/ig, '') 
-                    .replace(/^[^\wäöüÄÖÜß]+/, '') // Sonderzeichen vorne löschen
-                    .trim();
-                
-                if(typeText.length < 3 && y < rows.length - 1) {
-                    typeText = rows[y+1].join(" ").replace(/weigheim|st\.\s*otmar|otmar/ig, '').trim();
-                }
-                if(typeText.length < 3) typeText = "Gottesdienst";
+            // Fallback, falls absolut gar nichts da steht
+            if (typeText.length < 3) typeText = "Gottesdienst";
 
+            // C. FILTER LOGIK (WGF Aussortieren)
+            let isWGF = typeText.toLowerCase().includes("wgf") || 
+                        typeText.toLowerCase().includes("wort-gottes") || 
+                        typeText.toLowerCase().includes("wortgottes");
+
+            if (!isWGF) {
+                // Verhindert, dass der gleiche Termin doppelt eingelesen wird
                 let isDuplicate = events.some(e => e.date === lastFoundDate && e.time === time);
                 
                 if (!isDuplicate) {
                     events.push({
                         date: lastFoundDate,
                         time: time,
-                        type: typeText.substring(0, 60),
-                        count: "2"
+                        type: typeText.substring(0, 60), // Titel für PDF begrenzen
+                        count: "2" // Bereitstellung für das Dropdown-Menü
                     });
                 }
             }
         }
     }
 
+    // 3. ÜBERGABE AN DIE BENUTZEROBERFLÄCHE (Failsafe-Menü)
     extractedEventsObermini = events;
     const countLabel = document.getElementById('om-event-count');
     
     if(events.length === 0) {
-        countLabel.innerHTML = "<span class='text-red-500'>Keine relevanten Termine (Otmar, keine WGF) gefunden.</span>";
+        countLabel.innerHTML = "<span class='text-red-500'>Keine relevanten Termine in der Weigheim-Spalte gefunden.</span>";
     } else {
         countLabel.innerHTML = `<span class='text-green-600 bg-green-100 px-2 py-1 rounded shadow-sm font-bold'><i class="fa-solid fa-check mr-1"></i> ${events.length} Termine erkannt!</span>`;
-        showReviewView();
+        showReviewView(); // Öffnet die Liste zur finalen Bearbeitung
     }
 }
 // --- REVIEW / FAILSAFE ANSICHT ---
