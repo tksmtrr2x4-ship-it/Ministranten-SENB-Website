@@ -1227,6 +1227,27 @@ function deleteMini(id) {
 }
 
 // --- EXCEL UPLOAD & SMART KI SCANNER ---
+// --- EXCEL UPLOAD & LOKALE MUSTERERKENNUNGS-KI ---
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+if(dropZone) {
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+}
+
+if(fileInput) {
+    fileInput.addEventListener('change', function() {
+        if (this.files.length) handleFile(this.files[0]);
+    });
+}
+
 function handleFile(file) {
     const fileName = file.name.toLowerCase();
     document.getElementById('om-event-count').innerHTML = "<i class='fa-solid fa-spinner fa-spin text-churchRed'></i> Analysiere Struktur...";
