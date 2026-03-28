@@ -11,15 +11,12 @@
     <!-- Google Fonts (Nunito für ein freundliches, modernes Schriftbild) -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Bibliotheken für PDF-Erstellung, Word-Dokumente (.docx) UND PDF-Lesen (.pdf) -->
+    <!-- NEU: Bibliotheken für PDF-Erstellung und Word-Dokumente (.docx) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
     <script>
-        // Notwendig für den PDF-Reader
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-        
         tailwind.config = {
             theme: {
                 extend: {
@@ -42,7 +39,7 @@
         /* Sidebar transition für Mobile */
         #sidebar { transition: transform 0.3s ease-in-out; }
 
-        /* Drag & Drop Highlight für Dateiupload */
+        /* NEU: Drag & Drop Highlight für Dateiupload */
         .drag-over { border-color: #b91c1c !important; background-color: #fef2f2 !important; }
     </style>
 </head>
@@ -50,6 +47,7 @@
 
     <!-- ======================================================================================= -->
     <!-- GLOBALER LOGIN-SCHUTZ ANFANG                                                            -->
+    <!-- Um die Sperre der Webseite aufzuheben, lösche diesen Block vom ANFANG bis zum ENDE      -->
     <!-- ======================================================================================= -->
     <style id="global-login-styles">
         /* Versteckt die Webseite, solange das Passwort nicht eingegeben wurde */
@@ -108,7 +106,11 @@
                 const user = document.getElementById('global-user').value.trim();
                 const pw = document.getElementById('global-pw').value.trim();
                 
+                // =========================================================
+                // HIER ZUGANGSDATEN ÄNDERN:
+                // =========================================================
                 if(user === 'admin' && pw === 'minis2026') {
+                    
                     // Bei Erfolg: Lokal speichern und Maske ausblenden
                     sessionStorage.setItem('website_unlocked', 'true');
                     mask.style.opacity = '0';
@@ -130,10 +132,12 @@
     <!-- ======================================================================================= -->
 
 
-    <!-- WRAPPER DER WEBSEITE -->
+    <!-- WRAPPER DER WEBSEITE (Verhindert, dass man hinter die Login-Maske schauen kann) -->
     <div id="app-wrapper" class="w-full h-full flex">
         
-        <!-- Mobile Header -->
+        <!-- NAVIGATION UMBAU: SIDEBAR (Desktop & Mobile) -->
+        
+        <!-- Mobile Header (nur sichtbar auf kleinen Bildschirmen) -->
         <div class="md:hidden flex justify-between items-center bg-white shadow-md p-4 fixed w-full top-0 z-50 h-20">
             <div class="flex items-center cursor-pointer" onclick="navigate('home')">
                 <i class="fa-solid fa-cross text-churchRed text-2xl mr-2"></i>
@@ -144,15 +148,17 @@
             </button>
         </div>
 
-        <!-- Mobile Overlay -->
+        <!-- Mobile Overlay (grauer Hintergrund, wenn Sidebar offen) -->
         <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
 
-        <!-- Sidebar -->
+        <!-- Die eigentliche Sidebar -->
         <aside id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 z-50 bg-white w-72 shadow-xl md:shadow-md flex flex-col h-full overflow-y-auto">
             
             <!-- LOGO HIER EINFÜGEN -->
+            <!-- Platzhalter für das Logo, ganz oben in der Sidebar -->
             <div class="p-6 text-center border-b border-gray-100 flex-shrink-0 cursor-pointer" onclick="navigate('home')">
                 <img src="assets/MINISSENB.jpeg" alt="Logo Platzhalter" class="mx-auto w-20 h-20 rounded-full mb-4 border-2 border-churchRed shadow-sm object-cover">
+                <!-- Alternativer Text, falls Logo nicht lädt -->
                 <span class="font-bold text-2xl text-churchDark block">Minis <br><span class="text-churchRed">Neckar-Baar</span></span>
             </div>
 
@@ -184,6 +190,7 @@
                 </a>
             </nav>
 
+            <!-- Sidebar Footer -->
             <div class="p-4 border-t border-gray-100 text-xs text-center text-gray-500">
                 &copy; 2026 Minis Neckar-Baar
             </div>
@@ -195,7 +202,9 @@
 
                 <!-- 1. STARTSEITE -->
                 <section id="home" class="page-section active">
+                    <!-- Hero Banner (Dynamisches Bild per JS) -->
                     <div id="hero-banner" class="text-white py-32 lg:py-48 px-4 text-center bg-cover bg-center relative">
+                        <!-- Dark Gradient Overlay via CSS im JS Injected -->
                         <div class="relative z-10">
                             <h1 class="text-4xl lg:text-6xl font-extrabold mb-4 drop-shadow-lg">Wir sind die Ministranten<br>der SE Neckar-Baar!</h1>
                             <p class="text-xl lg:text-2xl mb-8 font-light drop-shadow-md">Glaube erleben. Gemeinschaft feiern. Spaß haben.</p>
@@ -206,6 +215,7 @@
                         </div>
                     </div>
 
+                    <!-- Schnellzugriffe (Cards) -->
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="bg-white rounded-xl shadow-lg p-6 text-center border-t-4 border-churchRed hover:shadow-xl transition cursor-pointer" onclick="navigate('aktuelles')">
@@ -239,15 +249,22 @@
                         </div>
                     </div>
 
+                    <!-- News & Termine Preview -->
                     <div class="py-16 bg-white">
                         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-12">
+                            <!-- Aktuelle Neuigkeiten (Dynamisch) -->
                             <div>
                                 <h2 class="text-3xl font-bold text-churchDark mb-6 border-b-2 border-churchGold pb-2"><i class="fa-solid fa-newspaper text-churchRed mr-2"></i>Aktuelles</h2>
-                                <div id="news-container" class="space-y-6"></div>
+                                <div id="news-container" class="space-y-6">
+                                    <!-- Wird per JS befüllt -->
+                                </div>
                             </div>
+                            <!-- Nächste Termine (Dynamisch synchronisiert) -->
                             <div>
                                 <h2 class="text-3xl font-bold text-churchDark mb-6 border-b-2 border-churchGold pb-2"><i class="fa-regular fa-calendar text-churchRed mr-2"></i>Nächste Termine</h2>
-                                <ul id="next-events-container" class="space-y-4"></ul>
+                                <ul id="next-events-container" class="space-y-4">
+                                    <!-- Wird per JS aus zentraler Datenstruktur befüllt -->
+                                </ul>
                                 <div class="mt-4 text-right">
                                     <button onclick="navigate('aktuelles')" class="text-churchRed font-bold hover:underline">Alle Termine ansehen &rarr;</button>
                                 </div>
@@ -284,7 +301,9 @@
                         </div>
 
                         <h3 class="text-2xl font-bold text-center text-churchDark mb-8 border-b-2 border-churchGold pb-2 inline-block">Die Leitungsrunde</h3>
-                        <div id="leaders-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 text-center"></div>
+                        <div id="leaders-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 text-center">
+                            <!-- Wird per JS dynamisch befüllt (bessere Flexibilität) -->
+                        </div>
                     </div>
                 </section>
 
@@ -351,32 +370,43 @@
                     </div>
                 </section>
 
-                <!-- 4. AKTUELLES & KALENDER -->
+                <!-- 4. AKTUELLES & KALENDER (Mit Ort-Tabs & dynamischem Import) -->
                 <section id="aktuelles" class="page-section bg-white py-12">
                     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-8">
                             <h2 class="text-4xl font-extrabold text-churchDark">Termine & Gottesdienstzeiten</h2>
                             <p class="mt-4 text-xl text-gray-600">Das offizielle Programm der Seelsorgeeinheit Neckar-Baar.<br>Die Einteilung für die Gottesdienste findest du im <a href="#" onclick="navigate('intern')" class="text-churchRed underline hover:text-red-800">internen Bereich</a>.</p>
+                            
+                            <!-- Ladeanzeige für dynamischen Import -->
                             <div id="events-loading-status" class="mt-4 text-sm font-semibold text-gray-500">
                                 <i class="fa-solid fa-spinner fa-spin mr-2"></i> Termine werden aktualisiert...
                             </div>
                         </div>
 
+                        <!-- Tabs Navigation -->
                         <div class="flex justify-center mb-8 border-b border-gray-200">
                             <button onclick="switchTab('tab-datum')" id="btn-tab-datum" class="px-6 py-3 text-lg font-bold text-churchRed border-b-4 border-churchRed focus:outline-none transition-colors">Nach Datum</button>
                             <button onclick="switchTab('tab-ort')" id="btn-tab-ort" class="px-6 py-3 text-lg font-bold text-gray-500 border-b-4 border-transparent hover:text-churchRed focus:outline-none transition-colors">Nach Ort</button>
                         </div>
 
-                        <div id="tab-datum" class="space-y-4 mb-12 block"></div>
-                        <div id="tab-ort" class="mb-12 hidden grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start"></div>
+                        <!-- TAB: DATUM (Dynamisch befüllt) -->
+                        <div id="tab-datum" class="space-y-4 mb-12 block">
+                            <!-- Wird per JS befüllt -->
+                        </div>
 
+                        <!-- TAB: ORT (Dynamisch befüllt) -->
+                        <div id="tab-ort" class="mb-12 hidden grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+                            <!-- Wird per JS befüllt -->
+                        </div>
+
+                        <!-- Info Box -->
                         <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg mt-8 text-blue-900 text-sm shadow-sm">
                             <strong>Hinweis:</strong> Wir Ministranten treffen uns für unseren Dienst in der Regel **15 Minuten** vor Beginn des Gottesdienstes in der Sakristei, um uns umzuziehen und einzuteilen.
                         </div>
                     </div>
                 </section>
 
-                <!-- 5. AKTIONEN & MEDIEN -->
+                <!-- 5. AKTIONEN & MEDIEN (Galerie dynamisch) -->
                 <section id="aktionen" class="page-section bg-gray-50 py-12">
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-12">
@@ -384,7 +414,9 @@
                             <p class="mt-4 text-xl text-gray-600">Einblicke in unser Minileben abseits des Altars.</p>
                         </div>
 
-                        <div id="gallery-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                        <div id="gallery-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Wird per JS dynamisch generiert -->
+                        </div>
                     </div>
                 </section>
 
@@ -416,8 +448,9 @@
                             <p class="text-xs text-center text-gray-500 mt-4">Tipp: Das Passwort gibt es bei der Gruppenleitung.</p>
                         </div>
 
-                        <!-- GESCHÜTZTER INHALT -->
+                        <!-- GESCHÜTZTER INHALT (Wird nach Login sichtbar) -->
                         <div id="protected-content" class="hidden">
+                            <!-- Erfolgsnachricht & Logout -->
                             <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-8 flex flex-col sm:flex-row justify-between items-center gap-4 rounded-r-lg shadow-sm">
                                 <p class="text-green-800 font-bold"><i class="fa-solid fa-circle-check mr-2"></i>Erfolgreich eingeloggt!</p>
                                 <button onclick="logoutIntern()" class="text-sm bg-white text-gray-700 hover:text-churchRed px-4 py-2 rounded border border-gray-300 transition shadow-sm font-semibold">
@@ -428,10 +461,11 @@
                             <h3 class="text-2xl font-bold text-churchDark mb-6 border-b-2 border-churchGold pb-2">Downloads & Dokumente</h3>
                             <p class="text-gray-600 mb-8">Hier findest du allgemeine Vorlagen sowie die aktuellen Dienstpläne sortiert nach Gemeinde.</p>
 
-                            <!-- ALLGEMEINE DOKUMENTE -->
+                            <!-- ALLGEMEINE DOKUMENTE (Übergreifend) -->
                             <div class="bg-blue-50 border-t-4 border-blue-500 rounded-xl p-6 shadow-md mb-10">
                                 <h4 class="text-xl font-bold text-blue-900 mb-4"><i class="fa-solid fa-folder-open text-blue-500 mr-2"></i>Übergreifend für alle Gemeinden</h4>
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <!-- PDF Platzhalter 1 -->
                                     <a href="dokumente/regeln_sakristei.pdf" target="_blank" class="flex items-center bg-white p-3 rounded-lg shadow-sm hover:shadow hover:bg-blue-100 border border-blue-100 transition group">
                                         <i class="fa-regular fa-file-pdf text-3xl text-red-500 mr-4 group-hover:scale-110 transition-transform"></i>
                                         <div>
@@ -439,6 +473,7 @@
                                             <span class="block text-xs text-gray-500">Allgemeiner Leitfaden</span>
                                         </div>
                                     </a>
+                                    <!-- PDF Platzhalter 2 -->
                                     <a href="dokumente/einladung_zeltlager.pdf" target="_blank" class="flex items-center bg-white p-3 rounded-lg shadow-sm hover:shadow hover:bg-blue-100 border border-blue-100 transition group">
                                         <i class="fa-regular fa-file-pdf text-3xl text-red-500 mr-4 group-hover:scale-110 transition-transform"></i>
                                         <div>
@@ -446,6 +481,7 @@
                                             <span class="block text-xs text-gray-500">Inklusive Packliste</span>
                                         </div>
                                     </a>
+                                    <!-- PDF Platzhalter 3 -->
                                     <a href="dokumente/einverstaendniserklaerung.pdf" target="_blank" class="flex items-center bg-white p-3 rounded-lg shadow-sm hover:shadow hover:bg-blue-100 border border-blue-100 transition group">
                                         <i class="fa-regular fa-file-pdf text-3xl text-red-500 mr-4 group-hover:scale-110 transition-transform"></i>
                                         <div>
@@ -458,62 +494,101 @@
 
                             <h4 class="text-xl font-bold text-churchDark mb-4"><i class="fa-solid fa-map-location-dot text-churchRed mr-2"></i>Dienstpläne nach Gemeinde</h4>
 
-                            <!-- GEMEINDEN GRID -->
+                            <!-- GEMEINDEN GRID (Die 5 Kirchen) -->
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                
+                                <!-- St. Franziskus -->
                                 <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
-                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2"><i class="fa-solid fa-church text-churchGold mr-2"></i> St. Franziskus</h4>
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2">
+                                        <i class="fa-solid fa-church text-churchGold mr-2"></i> St. Franziskus
+                                    </h4>
                                     <div class="space-y-2 flex-grow">
                                         <a href="dokumente/plan_franziskus_aktuell" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group">
                                             <i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i>
-                                            <div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span></div>
+                                            <div>
+                                                <span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span>
+                                            </div>
                                         </a>
                                         <a href="dokumente/plan_franziskus_naechster.pdf" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group">
                                             <i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i>
-                                            <div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Nächster Monat</span></div>
+                                            <div>
+                                                <span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Nächster Monat</span>
+                                            </div>
                                         </a>
                                     </div>
                                 </div>
+
+                                <!-- Mariä Himmelfahrt -->
                                 <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
-                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2"><i class="fa-solid fa-church text-churchGold mr-2"></i> Mariä Himmelfahrt</h4>
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2">
+                                        <i class="fa-solid fa-church text-churchGold mr-2"></i> Mariä Himmelfahrt
+                                    </h4>
                                     <div class="space-y-2 flex-grow">
                                         <a href="dokumente/plan_himmelfahrt_aktuell.pdf" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group">
                                             <i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i>
-                                            <div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span></div>
+                                            <div>
+                                                <span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span>
+                                            </div>
+                                        </a>
+                                        <a href="dokumente/plan_himmelfahrt_naechster.pdf" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group">
+                                            <i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i>
+                                            <div>
+                                                <span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Nächster Monat</span>
+                                            </div>
                                         </a>
                                     </div>
                                 </div>
+
+                                <!-- St. Otmar -->
                                 <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
-                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2"><i class="fa-solid fa-church text-churchGold mr-2"></i> St. Otmar</h4>
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2">
+                                        <i class="fa-solid fa-church text-churchGold mr-2"></i> St. Otmar
+                                    </h4>
                                     <div class="space-y-2 flex-grow">
                                         <a href="dokumente/plan_otmar.pdf" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group">
                                             <i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i>
-                                            <div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span></div>
+                                            <div>
+                                                <span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span>
+                                            </div>
                                         </a>
                                     </div>
                                 </div>
+
+                                <!-- St. Anna -->
                                 <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
-                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2"><i class="fa-solid fa-church text-churchGold mr-2"></i> St. Anna</h4>
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2">
+                                        <i class="fa-solid fa-church text-churchGold mr-2"></i> St. Anna
+                                    </h4>
                                     <div class="space-y-2 flex-grow">
                                         <a href="dokumente/plan_anna.pdf" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group">
                                             <i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i>
-                                            <div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span></div>
+                                            <div>
+                                                <span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span>
+                                            </div>
                                         </a>
                                     </div>
                                 </div>
+
+                                <!-- St. Georg -->
                                 <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
-                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2"><i class="fa-solid fa-church text-churchGold mr-2"></i> St. Georg</h4>
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2">
+                                        <i class="fa-solid fa-church text-churchGold mr-2"></i> St. Georg
+                                    </h4>
                                     <div class="space-y-2 flex-grow">
                                         <a href="dokumente/plan_georg.pdf" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group">
                                             <i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i>
-                                            <div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span></div>
+                                            <div>
+                                                <span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed">Miniplan Aktueller Monat</span>
+                                            </div>
                                         </a>
                                     </div>
                                 </div>
                             </div>
+                            <!-- ENDE GEMEINDEN GRID -->
 
 
                             <!-- ======================================================================= -->
-                            <!-- NEU: VERSTECKTER OBERMINI-BEREICH (Nahtlos unter die Original-Grids gefügt) -->
+                            <!-- NEU: VERSTECKTER OBERMINI-BEREICH (Dienstplan Generator)                -->
                             <!-- ======================================================================= -->
                             <div class="mt-16 pt-8 border-t border-gray-200 flex justify-end">
                                 <button onclick="toggleOberminiAuth()" class="text-gray-400 hover:text-churchRed transition text-sm flex items-center">
@@ -543,7 +618,7 @@
                                     <!-- LINKE SEITE: Datenbank & Sperrdaten -->
                                     <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
                                         <h4 class="font-bold text-lg mb-4 text-churchDark"><i class="fa-solid fa-users text-churchRed mr-2"></i>Ministranten & Sperrdaten</h4>
-                                        <p class="text-sm text-gray-500 mb-4">Hier eintragen, an welchen Daten (z.B. 12.04) ein Mini <b>nicht</b> kann.</p>
+                                        <p class="text-sm text-gray-500 mb-4">Hier eintragen, an welchen Daten (z.B. 12.04) ein Mini <b>nicht</b> kann. Die Änderungen werden lokal gespeichert.</p>
                                         
                                         <!-- Mini hinzufügen -->
                                         <div class="flex gap-2 mb-4">
@@ -557,22 +632,21 @@
                                         </div>
                                     </div>
 
-                                    <!-- RECHTE SEITE: File Upload & Überprüfung (Das Zwischenfeld) -->
-                                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 flex flex-col">
-                                        
-                                        <!-- UPLOAD BEREICH -->
-                                        <div id="om-upload-area">
+                                    <!-- RECHTE SEITE: File Upload & PDF Generierung -->
+                                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 flex flex-col justify-between">
+                                        <div>
                                             <h4 class="font-bold text-lg mb-4 text-churchDark"><i class="fa-solid fa-file-arrow-up text-churchRed mr-2"></i>Termine einlesen</h4>
-                                            <p class="text-sm text-gray-600 mb-4">Lade eine PDF (.pdf), Word (.docx) oder Textdatei hoch. Die KI filtert nach St. Otmar/Weigheim und ignoriert WGFs.</p>
+                                            <p class="text-sm text-gray-600 mb-4">Lade eine Word-Datei (.docx) oder Textdatei (.txt) hoch. Die KI filtert nach St. Otmar/Weigheim und ignoriert WGFs.</p>
                                             
                                             <!-- DRAG & DROP FELD -->
                                             <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-white hover:bg-gray-50 transition cursor-pointer mb-4">
                                                 <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
-                                                <p class="text-sm font-semibold text-gray-600">.pdf, .docx oder .txt hier ablegen</p>
-                                                <!-- NEU: Akzeptiert auch PDF -->
-                                                <input type="file" id="file-input" accept=".txt, .docx, .pdf, application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden">
+                                                <p class="text-sm font-semibold text-gray-600">.docx oder .txt hier ablegen</p>
+                                                <!-- Akzeptiert Word und Txt -->
+                                                <input type="file" id="file-input" accept=".txt, .docx, application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden">
                                             </div>
                                             
+                                            <!-- FALLBACK TEXTFELD -->
                                             <textarea id="text-fallback" rows="3" class="w-full text-sm p-3 rounded border border-gray-300 focus:border-churchRed outline-none mb-4 shadow-sm" placeholder="Oder kopierten Text hier einfügen..."></textarea>
                                             
                                             <div class="flex items-center justify-between mt-2">
@@ -580,24 +654,15 @@
                                                 <span class="text-sm font-bold text-gray-500" id="om-event-count">0 Termine erkannt</span>
                                             </div>
                                         </div>
-
-                                        <!-- REVIEW BEREICH (ZWISCHENFELD ZUR ÜBERPRÜFUNG) - Wird nach Upload eingeblendet -->
-                                        <div id="om-review-area" class="hidden flex-col h-full">
-                                            <div class="flex justify-between items-center mb-4">
-                                                <h4 class="font-bold text-lg text-churchDark"><i class="fa-solid fa-list-check text-churchRed mr-2"></i>Erkannte Termine</h4>
-                                                <button onclick="resetToUpload()" class="text-sm text-gray-500 hover:text-churchDark underline">Neu hochladen</button>
-                                            </div>
-                                            <p class="text-xs text-gray-500 mb-4">Bitte überprüfe die Namen und lege fest, wie viele Minis gebraucht werden. Fehlerhafte Einträge können gelöscht oder überschrieben werden.</p>
-                                            
-                                            <div id="om-review-list" class="flex-grow overflow-y-auto space-y-3 max-h-80 pr-2 border-b border-gray-200 pb-4 mb-4">
-                                                <!-- Wird per JS befüllt -->
-                                            </div>
-
-                                            <button onclick="generatePDFFromReview()" class="w-full bg-churchGold text-churchDark font-bold py-3 rounded-lg flex justify-center items-center hover:bg-yellow-500 transition shadow-lg mt-auto">
+                                        
+                                        <!-- PDF ERSTELLEN BUTTON (Wird erst klickbar, wenn Termine erkannt wurden) -->
+                                        <div class="mt-8 pt-6 border-t border-gray-200">
+                                            <button onclick="generatePDF()" id="btn-generate-pdf" class="w-full bg-gray-300 text-gray-500 font-bold py-3 rounded-lg flex justify-center items-center transition cursor-not-allowed" disabled>
                                                 <i class="fa-solid fa-file-pdf mr-2 text-xl"></i> Dienstplan (PDF) erstellen
                                             </button>
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
                             <!-- ENDE OBERMINI BEREICH -->
@@ -649,7 +714,7 @@
                                 </form>
                             </div>
 
-                            <!-- Contact Info -->
+                            <!-- Contact Info & Map Placeholder -->
                             <div class="space-y-8">
                                 <div>
                                     <h3 class="text-2xl font-bold text-churchDark mb-4">Ansprechpartner</h3>
@@ -761,6 +826,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderNews();
     renderLeaders();
     renderGallery();
+    
+    // Starte den 100% frischen Live-Abruf
     fetchAndProcessLiveEvents();
 });
 
@@ -812,6 +879,7 @@ function renderGallery() {
 // 3. 100% LIVE ABRUF & KI-PARSING
 // =========================================
 
+// Netzwerk-Sperren umgehen: Das Skript rotiert durch Server-Proxies, falls dein Browser blockt
 async function fetchRawHtml(targetUrl) {
     const proxies =[
         `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
@@ -846,6 +914,9 @@ async function fetchAndProcessLiveEvents() {
         const targetUrl = 'https://senb.de/gottesdienste/gottesdienstzeiten';
         const htmlText = await fetchRawHtml(targetUrl);
         
+        // 1. RADIKALE REINIGUNG: 
+        // Wir wandeln jeden HTML-Block (div, p, br, table) in Zeilenumbrüche um.
+        // Das zerstört das kaputte HTML der Kirchenseite und macht daraus ein sauberes Textdokument.
         let html = htmlText.replace(/<(div|p|tr|li|ul|table|h[1-6]|br)[^>]*>/gi, '\n');
         html = html.replace(/<\/(div|p|tr|li|ul|table|h[1-6])>/gi, '\n');
         
@@ -857,36 +928,48 @@ async function fetchAndProcessLiveEvents() {
         let currentDate = null;
         let currentEvent = null;
 
+        // 2. TEXT-VISION ALGORITHMUS:
+        // Das Skript liest von oben nach unten wie ein Mensch, statt nach HTML-Tags zu suchen.
         for (let line of lines) {
+            // Unnötige Filter-Wörter der Webseite überspringen
             if (line === "suchen" || line.includes("Alle Gottesdienstarten") || line.includes("Alle Gemeinden") || line.includes("Alle Zeiträume") || line.includes("Suche")) continue;
 
+            // Erkennt ein Datum? (z.B. 26.3.2026)
             let dateMatch = line.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
             if (dateMatch && (line.match(/^(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)/i) || line.length < 30)) {
                 currentDate = `${dateMatch[3]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}`;
                 continue;
             }
 
+            // Erkennt eine Uhrzeit? (z.B. 18:00 Uhr)
             let timeMatch = line.match(/^(\d{1,2})[:\.](\d{2})(?:\s*Uhr)?/i);
             if (timeMatch) {
+                // Sobald eine neue Uhrzeit auftaucht, wird der letzte fertige Termin gespeichert
                 if (currentEvent && currentEvent.title.length > 0) {
                     rawEvents.push(currentEvent);
                 }
+                
                 let timeStr = `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
                 currentEvent = { date: currentDate, time: timeStr, location: "", title:[] };
+                
+                // Falls die Kirchenseite Zeit und Ort in EINE Zeile geschrieben hat
                 let rest = line.replace(timeMatch[0], '').trim();
                 if (rest) currentEvent.location = rest;
+                
                 continue;
             }
 
+            // Alles was NACH einer Uhrzeit steht, muss Ort oder Titel sein
             if (currentEvent) {
                 if (!currentEvent.location) {
-                    currentEvent.location = line; 
+                    currentEvent.location = line; // 1. Zeile nach der Zeit ist meist der Ort
                 } else {
-                    currentEvent.title.push(line); 
+                    currentEvent.title.push(line); // Alle folgenden Zeilen sind der Titel
                 }
             }
         }
         
+        // Letzten Termin im Speicher nicht vergessen
         if (currentEvent && currentEvent.title.length > 0) {
             rawEvents.push(currentEvent);
         }
@@ -895,10 +978,13 @@ async function fetchAndProcessLiveEvents() {
         const now = new Date();
         now.setHours(0,0,0,0);
 
+        // 3. KATEGORISIERUNG & BEREINIGUNG
         rawEvents.forEach(ev => {
             if(!ev.date) return;
-            ev.title = ev.title.join(' - ');
             
+            ev.title = ev.title.join(' - '); // Füge mehrzeilige Titel zusammen
+            
+            // Wenn der Titel leer blieb, aber der Ort ellenlang ist (Website-Eingabefehler)
             if (!ev.title && ev.location.length > 30) {
                 const parts = ev.location.split(/(?:,\s*(?=St\.|VS-)| - )/);
                 if(parts.length > 1) {
@@ -910,6 +996,7 @@ async function fetchAndProcessLiveEvents() {
             if(!ev.location) ev.location = "Ort in der Seelsorgeeinheit";
             if(!ev.title) ev.title = "Gottesdienst / Termin";
 
+            // Präzise KI-Sortierung für die Farben und Icons
             let tLower = (ev.title + " " + ev.location).toLowerCase();
             ev.category = "Gottesdienst"; 
             if (tLower.includes('probe') || tLower.includes('ministranten')) ev.category = "Miniprobe";
@@ -918,6 +1005,7 @@ async function fetchAndProcessLiveEvents() {
             else if (tLower.match(/kreuzweg|ausflug|treffen|sitzung|wanderung/)) ev.category = "Aktion";
             else if (tLower.match(/kroatisch|rum-orth|ukrainisch|tamilisch/)) ev.category = "Gastgemeinde";
 
+            // Zeitfilter: Zeige ALLES von HEUTE bis in 60 Tagen an. Alte Daten fliegen raus.
             const evDate = new Date(`${ev.date}T00:00:00`);
             const diffDays = Math.ceil((evDate - now) / (1000 * 60 * 60 * 24));
             
@@ -927,6 +1015,7 @@ async function fetchAndProcessLiveEvents() {
         });
 
         if (finalEvents.length > 0) {
+            // Letzte Filterung von Duplikaten
             const uniqueEvents = finalEvents.filter((v, i, a) => 
                 a.findIndex(t => (t.date === v.date && t.time === v.time && t.title === v.title && t.location === v.location)) === i
             ).sort((a, b) => {
@@ -939,6 +1028,7 @@ async function fetchAndProcessLiveEvents() {
         }
 
     } catch (error) {
+        // EHRLICHER ERROR: Keine erfundenen Daten!
         console.error("Live-Abruf gescheitert:", error);
         if(statusDiv) {
             statusDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-600 mr-2"></i> <b>Fehler:</b> ${error.message}`;
@@ -962,6 +1052,7 @@ function updateUI(events, isSuccess, message) {
     renderEventsTabOrt(events);
 }
 
+// Rendert die Preview-Karten auf der Startseite
 function renderNextEventsPreview(events) {
     const container = document.getElementById('next-events-container');
     if (!container) return;
@@ -1004,6 +1095,7 @@ function renderNextEventsPreview(events) {
     }).join('');
 }
 
+// Rendert die große Listen-Ansicht (Nach Datum)
 function renderEventsTabDatum(events) {
     const container = document.getElementById('tab-datum');
     if (!container) return;
@@ -1065,6 +1157,7 @@ function renderEventsTabDatum(events) {
     }).join('');
 }
 
+// Rendert die Karten-Ansicht (Vollautomatisch Nach Ort)
 function renderEventsTabOrt(events) {
     const container = document.getElementById('tab-ort');
     if (!container) return;
@@ -1074,6 +1167,8 @@ function renderEventsTabOrt(events) {
         return;
     }
 
+    // VOLLAUTOMATISCH: Das Skript liest JEDEN gefundenen Ort aus dem Array und baut für jeden eine Karte.
+    // Egal ob das nun St. Georg, ein Gemeindehaus oder ein komplett neuer Ort ist.
     const grouped = events.reduce((acc, ev) => {
         const loc = ev.location || "Weitere Orte";
         if (!acc[loc]) acc[loc] =[];
@@ -1140,10 +1235,15 @@ function switchTab(tabId) {
     }
 }
 
+const mobileBtn = document.getElementById('mobile-menu-btn');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+
+if(mobileBtn) mobileBtn.addEventListener('click', toggleSidebar);
+
 function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    if (sidebar.classList.contains('-translate-x-full')) {
+    const isClosed = sidebar.classList.contains('-translate-x-full');
+    if (isClosed) {
         sidebar.classList.remove('-translate-x-full');
         overlay.classList.remove('hidden');
     } else {
@@ -1176,14 +1276,14 @@ function navigate(pageId) {
     }
 
     if (window.innerWidth < 768) { 
-        document.getElementById('sidebar').classList.add('-translate-x-full');
-        document.getElementById('sidebar-overlay').classList.add('hidden');
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
     }
     
     document.getElementById('main-scroll-area').scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// LOGIK FÜR DEN INTERNEN BEREICH
+// LOGIK FÜR DEN INTERNEN BEREICH (NICHT die globale Sperre)
 const loginForm = document.getElementById('login-form');
 const loginContainer = document.getElementById('login-container');
 const protectedContent = document.getElementById('protected-content');
@@ -1210,55 +1310,70 @@ function logoutIntern() {
     protectedContent.classList.remove('block');
     loginContainer.classList.remove('hidden');
     
-    // Falls Obermini-Bereich offen ist, auch schließen
+    // NEU: Schließe auch den Obermini-Bereich, wenn er offen war
     if(typeof closeOberminiWorkspace === 'function') {
         closeOberminiWorkspace();
     }
 }
 
-
 // =================================================================================================
 // =================================================================================================
-// 6. NEU: OBERMINI VERWALTUNG, LOKALE DATENBANK, PDF-UPLOAD & ZWISCHENFELD (REVIEW)
+// 6. NEU: OBERMINI VERWALTUNG, LOKALE DATENBANK, WORD-UPLOAD & PDF GENERATOR
 // =================================================================================================
 // =================================================================================================
 
 let minisDB = [];
+let extractedEventsObermini = []; // Um Namenskonflikte mit der Startseite zu vermeiden
 
-// --- A. OBERMINI LOGIN ---
+// --- A. OBERMINI LOGIN STEUERUNG ---
 function toggleOberminiAuth() {
     document.getElementById('obermini-auth-box').classList.toggle('hidden');
 }
 
 function loginObermini() {
     const pw = document.getElementById('om-pw-input').value;
-    if(pw === 'obermini2026') {
+    if(pw === 'obermini2026') { // HIER DAS PASSWORT FÜR OBERMINIS
         document.getElementById('obermini-auth-box').classList.add('hidden');
         document.getElementById('obermini-workspace').classList.remove('hidden');
         document.getElementById('om-pw-input').value = '';
-        initMinisDB(); 
+        initMinisDB(); // Lade Datenbank beim Öffnen
+    } else {
+        document.getElementById('om-error').classList.remove('hidden');
     }
 }
 
 function closeOberminiWorkspace() {
-    document.getElementById('obermini-workspace').classList.add('hidden');
-    resetToUpload();
+    const workspace = document.getElementById('obermini-workspace');
+    if(workspace) workspace.classList.add('hidden');
+    const authBox = document.getElementById('obermini-auth-box');
+    if(authBox) authBox.classList.add('hidden');
+    
+    extractedEventsObermini = [];
+    if(document.getElementById('text-fallback')) document.getElementById('text-fallback').value = '';
+    updatePdfButtonState();
 }
 
-// --- B. DATENBANK LOGIK ---
+// --- B. DATENBANK LOGIK (LocalStorage inkl. Sperrdaten) ---
 function initMinisDB() {
     const stored = localStorage.getItem('senb_otmar_minis_v2');
-    minisDB = stored ? JSON.parse(stored) : [
-        { id: 1, name: "Jill Manuel", blocked: "" },
-        { id: 2, name: "Simon", blocked: "" },
-        { id: 3, name: "Vincent", blocked: "" },
-        { id: 4, name: "Paula", blocked: "" },
-        { id: 5, name: "Rafael", blocked: "" }
-    ];
+    if (stored) {
+        minisDB = JSON.parse(stored);
+    } else {
+        // Standardwerte eintragen, falls noch nie genutzt
+        minisDB = [
+            { id: 1, name: "Jill Manuel", blocked: "" },
+            { id: 2, name: "Simon", blocked: "" },
+            { id: 3, name: "Vincent", blocked: "" },
+            { id: 4, name: "Paula", blocked: "" },
+            { id: 5, name: "Rafael", blocked: "" }
+        ];
+        saveMinisDB();
+    }
     renderMiniList();
 }
 
 function saveMinisDB() {
+    // Vor dem Speichern immer die aktuellen Sperrdaten-Eingaben aus den Input-Feldern abgreifen
     minisDB.forEach(m => {
         const input = document.getElementById(`sperr-${m.id}`);
         if(input) m.blocked = input.value;
@@ -1269,15 +1384,17 @@ function saveMinisDB() {
 function renderMiniList() {
     const container = document.getElementById('om-db-list');
     if(!container) return;
+    
     container.innerHTML = minisDB.map(mini => `
-        <div class="bg-white p-3 rounded shadow-sm border border-gray-200 flex flex-col gap-2">
+        <div class="bg-white p-3 rounded shadow-sm border border-gray-200 flex flex-col gap-2 relative group">
             <div class="flex justify-between items-center">
-                <span class="font-bold text-sm text-churchDark">${mini.name}</span>
-                <button onclick="deleteMini(${mini.id})" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-trash-can"></i></button>
+                <span class="font-bold text-sm text-churchDark"><i class="fa-solid fa-user text-churchGold mr-2"></i>${mini.name}</span>
+                <button onclick="deleteMini(${mini.id})" class="text-red-400 hover:text-red-600 transition" title="Ministrant löschen"><i class="fa-solid fa-trash-can"></i></button>
             </div>
+            <!-- Sperrspalte direkt unter dem Namen -->
             <div class="flex items-center">
-                <span class="text-xs text-gray-500 w-20">Sperren:</span>
-                <input type="text" id="sperr-${mini.id}" value="${mini.blocked || ''}" onchange="saveMinisDB()" class="flex-grow bg-gray-50 border border-gray-300 rounded px-2 py-1 text-xs outline-none" placeholder="z.B. 12.04, 25.04">
+                <span class="text-xs text-gray-500 w-20">Sperrdaten:</span>
+                <input type="text" id="sperr-${mini.id}" value="${mini.blocked || ''}" onchange="saveMinisDB()" class="flex-grow bg-gray-50 border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:border-churchRed shadow-inner" placeholder="z.B. 12.04, 25.04">
             </div>
         </div>
     `).join('');
@@ -1286,7 +1403,7 @@ function renderMiniList() {
 function addMiniToDB() {
     const input = document.getElementById('new-mini-name');
     if(input && input.value.trim()) {
-        saveMinisDB(); 
+        saveMinisDB(); // Vorherige Sperrdaten sichern, bevor neu gerendert wird
         minisDB.push({ id: Date.now(), name: input.value.trim(), blocked: "" });
         saveMinisDB();
         input.value = '';
@@ -1295,12 +1412,14 @@ function addMiniToDB() {
 }
 
 function deleteMini(id) {
-    minisDB = minisDB.filter(m => m.id !== id);
-    saveMinisDB();
-    renderMiniList();
+    if(confirm("Möchtest du diesen Ministranten wirklich aus der Datenbank löschen?")) {
+        minisDB = minisDB.filter(m => m.id !== id);
+        saveMinisDB();
+        renderMiniList();
+    }
 }
 
-// --- C. FILE UPLOAD & PRÄZISIONSMESSUNG (EXCEL & WORD-TABELLE) ---
+// --- C. DATEI UPLOAD (.TXT & .DOCX) & KI TEXT SCANNER ---
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
 
@@ -1315,197 +1434,194 @@ if(dropZone) {
     });
 }
 
-if(fileInput) fileInput.addEventListener('change', function() { if (this.files.length) handleFile(this.files[0]); });
-
-function resetToUpload() {
-    document.getElementById('om-upload-area').classList.remove('hidden');
-    document.getElementById('om-review-area').classList.add('hidden');
-    document.getElementById('text-fallback').value = '';
-    document.getElementById('om-event-count').innerHTML = '0 Termine erkannt';
+if(fileInput) {
+    fileInput.addEventListener('change', function() {
+        if (this.files.length) handleFile(this.files[0]);
+    });
 }
 
 function handleFile(file) {
     const fileName = file.name.toLowerCase();
-    document.getElementById('om-event-count').innerHTML = "Lese Datei...";
+    
+    // Hinweis-Reset
+    document.getElementById('om-event-count').innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Lese Datei...";
 
-    // 1. EXCEL DATEIEN (.xlsx oder .xls)
-    if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+    // 1. WENN ES EINE WORD DATEI IST (.docx)
+    if (fileName.endsWith('.docx')) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const json = XLSX.utils.sheet_to_json(sheet, {header: 1}); // Zeilen-basiertes Auslesen
-
-            let events = [];
-            let currentDate = "Unbekannt";
-
-            json.forEach(row => {
-                if (row.length < 4) return; // Zu kleine Zeile
-
-                // Spalte 0 (A) = Datum, Spalte 3 (D) = Weigheim
-                const dateText = String(row[0] || '').trim();
-                const weigheimText = String(row[3] || '').trim();
-
-                let dateMatch = dateText.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
-                if (dateMatch) currentDate = dateMatch[0];
-
-                if (weigheimText && weigheimText !== '-' && weigheimText !== '–') {
-                    let timeMatch = weigheimText.match(/^(\d{1,2})[:\.](\d{2})/);
-                    if (timeMatch) {
-                        let time = `${timeMatch[1].padStart(2,'0')}:${timeMatch[2]}`;
-                        let typeText = weigheimText.replace(timeMatch[0], '').replace(/Uhr/i, '').trim();
-                        if (!typeText.match(/wgf|wort-gottes-feier/i)) {
-                            events.push({ date: currentDate, time: time, type: typeText || "Gottesdienst" });
-                        }
-                    }
-                }
-            });
-            if(events.length > 0) renderReviewStep(events);
-            else alert("Keine Termine für Weigheim in Spalte D gefunden!");
-        };
-        reader.readAsArrayBuffer(file);
-    }
-    // 2. WORD DATEIEN (.docx) - Liest jetzt die Tabellenstruktur!
-    else if (fileName.endsWith('.docx')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            mammoth.convertToHtml({arrayBuffer: e.target.result})
+            const arrayBuffer = e.target.result;
+            // Mammoth.js wandelt das Word Dokument in reinen Text um
+            if(typeof mammoth === 'undefined') {
+                alert("Fehler: Mammoth.js (Word-Reader) wurde nicht geladen. Prüfe deine Internetverbindung.");
+                return;
+            }
+            mammoth.extractRawText({arrayBuffer: arrayBuffer})
                 .then(function(result){
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(result.value, 'text/html');
-                    const rows = doc.querySelectorAll('tr');
-
-                    let events = [];
-                    let currentDate = "Unbekannt";
-
-                    rows.forEach(row => {
-                        const cells = row.querySelectorAll('td');
-                        if(cells.length < 4) return; // Keine vollständige Tabellenzeile
-
-                        const dateText = cells[0].textContent.trim();
-                        const weigheimText = cells[3].textContent.trim(); // SPALTE 4 (Index 3) = WEIGHEIM
-
-                        let dateMatch = dateText.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
-                        if (dateMatch) currentDate = dateMatch[0];
-
-                        if (weigheimText && weigheimText !== '-' && weigheimText !== '–') {
-                            const lines = weigheimText.split('\n');
-                            lines.forEach(line => {
-                                let timeMatch = line.trim().match(/^(\d{1,2})[:\.](\d{2})/);
-                                if (timeMatch) {
-                                    let time = `${timeMatch[1].padStart(2,'0')}:${timeMatch[2]}`;
-                                    let typeText = line.trim().replace(timeMatch[0], '').replace(/Uhr/i, '').trim();
-                                    if(!typeText.match(/wgf/i)) {
-                                        events.push({ date: currentDate, time: time, type: typeText || "Gottesdienst" });
-                                    }
-                                }
-                            });
-                        }
-                    });
-                    if(events.length > 0) renderReviewStep(events);
-                    else alert("Keine Termine für Weigheim in Tabellenspalte 4 gefunden!");
+                    document.getElementById('text-fallback').value = result.value; // Text ins Textfeld packen
+                    processOberminiText(result.value);
+                })
+                .catch(function(err){
+                    alert("Fehler beim Lesen der Word-Datei: " + err.message);
+                    document.getElementById('om-event-count').innerHTML = "Fehler beim Lesen.";
                 });
         };
         reader.readAsArrayBuffer(file);
+    } 
+    // 2. WENN ES EINE TEXTDATEI IST (.txt)
+    else {
+        const reader = new FileReader();
+        reader.onload = function(e) { 
+            document.getElementById('text-fallback').value = e.target.result;
+            processOberminiText(e.target.result); 
+        };
+        reader.readAsText(file);
     }
 }
 
 function processUpload() {
     const text = document.getElementById('text-fallback').value;
     if(text.trim().length > 10) {
-        // Fallback manueller Parser (falls kein Datei Upload)
-        let events = [];
-        let date = "Unbekannt";
-        text.split('\n').forEach(line => {
-            let dm = line.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
-            if (dm) date = dm[0];
-            let tm = line.match(/(\d{1,2})[:\.](\d{2})/);
-            if(tm && line.match(/weigheim|otmar/i) && !line.match(/wgf/i)) {
-                events.push({date: date, time: tm[0], type: "Gottesdienst"});
-            }
-        });
-        renderReviewStep(events);
+        processOberminiText(text);
+    } else {
+        alert("Bitte füge Text ein oder lade eine Datei hoch.");
     }
 }
 
-// --- D. ZWISCHENFELD (REVIEW) & PDF ---
-function renderReviewStep(events) {
-    document.getElementById('om-upload-area').classList.add('hidden');
-    document.getElementById('om-review-area').classList.remove('hidden');
-    document.getElementById('om-review-area').classList.add('flex');
+function processOberminiText(rawText) {
+    const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    let events = [];
+    let currentDate = "Unbekannt";
 
-    const container = document.getElementById('om-review-list');
-    container.innerHTML = events.map(ev => `
-        <div class="bg-white border border-gray-300 rounded-lg p-3 flex flex-col gap-2 review-item">
-            <div class="flex flex-col sm:flex-row gap-2">
-                <input type="text" class="rev-date w-full sm:w-1/3 p-2 border border-gray-200 rounded text-sm font-bold text-churchRed" value="${ev.date} | ${ev.time} Uhr">
-                <input type="text" class="rev-type w-full sm:w-2/3 p-2 border border-gray-200 rounded text-sm text-gray-800" value="${ev.type}">
-            </div>
-            <div class="flex justify-between items-center border-t pt-2">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs text-gray-500">Minis:</span>
-                    <select class="rev-count text-sm border border-gray-300 rounded py-1 px-2 font-bold">
-                        <option value="2" selected>2 Minis</option>
-                        <option value="3">3 Minis</option>
-                        <option value="4">4 Minis</option>
-                        <option value="5">5 Minis</option>
-                        <option value="6">6 Minis</option>
-                        <option value="all">Alle</option>
-                    </select>
-                </div>
-                <button onclick="this.closest('.review-item').remove()" class="text-gray-400 hover:text-red-500 text-sm"><i class="fa-solid fa-trash"></i> Löschen</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-function generatePDFFromReview() {
-    saveMinisDB();
-    const items = document.querySelectorAll('.review-item');
-    if(items.length === 0) return alert("Keine Termine mehr da!");
-
-    let finalSchedule = [];
-    items.forEach(item => {
-        let dateTimeStr = item.querySelector('.rev-date').value.trim();
-        let eventTypeStr = item.querySelector('.rev-type').value.trim();
-        let miniCountSelect = item.querySelector('.rev-count').value;
-
-        let evShortDate = dateTimeStr.match(/(\d{1,2})\.(\d{1,2})/)[0];
-
-        let available = minisDB.filter(m => !m.blocked.includes(evShortDate));
-        available = available.sort(() => 0.5 - Math.random());
-
-        let assignedNames = "";
-        if(miniCountSelect === "all") {
-            assignedNames = available.map(m => m.name).join(', ');
-        } else {
-            let count = parseInt(miniCountSelect);
-            assignedNames = available.slice(0, count).map(m => m.name).join(', ');
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        
+        // Datumssuche (z.B. 12.04.2026)
+        let dateMatch = line.match(/(\d{1,2})\.(\d{1,2})\.(?:\d{4})?/);
+        if(dateMatch && (line.match(/^(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)/i) || line.length < 30)) {
+            currentDate = dateMatch[0];
+            if(!currentDate.match(/\d{4}/)) currentDate = `${dateMatch[1].padStart(2,'0')}.${dateMatch[2].padStart(2,'0')}.`;
+            continue;
         }
 
-        finalSchedule.push([dateTimeStr.replace(" | ", "\n"), eventTypeStr, assignedNames || "Keiner kann!"]);
+        // Zeitsuche (z.B. 18:00)
+        let timeMatch = line.match(/^(\d{1,2})[:\.](\d{2})/);
+        if (timeMatch) {
+            let time = `${timeMatch[1].padStart(2,'0')}:${timeMatch[2]}`;
+            let context = line + " " + (lines[i+1] || "");
+            
+            // KI FILTER LOGIK FÜR OBERMINIS
+            const isTargetLocation = context.match(/weigheim|otmar/i);
+            const isWGF = context.match(/wgf|wort-gottes-feier|wortgottesfeier/i);
+
+            // Nur speichern, wenn Otmar/Weigheim drin vorkommt und KEIN WGF ist
+            if (isTargetLocation && !isWGF) {
+                let typeText = line.replace(timeMatch[0], '').replace(/Uhr/i, '').trim();
+                if(typeText.length < 3) typeText = lines[i+1];
+                
+                events.push({
+                    date: currentDate,
+                    time: time,
+                    type: typeText.substring(0, 60)
+                });
+            }
+        }
+    }
+
+    extractedEventsObermini = events;
+    const countLabel = document.getElementById('om-event-count');
+    
+    if(events.length === 0) {
+        countLabel.innerHTML = "<span class='text-red-500'>Keine passenden Termine gefunden! (WGF ignoriert)</span>";
+    } else {
+        countLabel.innerHTML = `<span class='text-green-600 bg-green-100 px-2 py-1 rounded border border-green-200'>${events.length} Termine erkannt!</span>`;
+    }
+    
+    updatePdfButtonState();
+}
+
+function updatePdfButtonState() {
+    const btn = document.getElementById('btn-generate-pdf');
+    if(extractedEventsObermini.length > 0) {
+        btn.disabled = false;
+        btn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+        btn.classList.add('bg-churchGold', 'text-churchDark', 'hover:bg-yellow-500', 'shadow-lg');
+    } else {
+        btn.disabled = true;
+        btn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+        btn.classList.remove('bg-churchGold', 'text-churchDark', 'hover:bg-yellow-500', 'shadow-lg');
+    }
+}
+
+// --- D. PDF GENERIERUNG ---
+function generatePDF() {
+    saveMinisDB(); // Stellt sicher, dass auch gerade eben erst eingetippte Sperrdaten verarbeitet werden
+
+    let finalSchedule = [];
+    
+    // Zuteilung
+    extractedEventsObermini.forEach(ev => {
+        let evShortDate = ev.date.substring(0,5); // Aus "12.04.2026" wird "12.04"
+        
+        let available = minisDB.filter(m => {
+            if(!m.blocked) return true; // Hat keine Sperrdaten
+            return !m.blocked.includes(evShortDate); // Datum kommt nicht in Sperrdaten vor
+        });
+
+        // Durchmischen, damit nicht immer dieselben eingeteilt werden
+        available = available.sort(() => 0.5 - Math.random());
+        
+        // Immer 2 Minis nehmen
+        let assignedNames = available.slice(0, 2).map(m => m.name).join(' und ');
+        if(!assignedNames) assignedNames = "--- FEHLT ---";
+
+        finalSchedule.push([
+            `${ev.date}\n${ev.time} Uhr`,
+            ev.type,
+            assignedNames
+        ]);
     });
 
+    // jsPDF Erstellung
+    if (typeof window.jspdf === 'undefined') {
+        alert("Fehler: PDF Bibliothek konnte nicht geladen werden.");
+        return;
+    }
+    
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
+
+    // PDF Styling (Kopfzeile)
     doc.setFontSize(18);
-    doc.setTextColor(185, 28, 28);
+    doc.setTextColor(185, 28, 28); // churchRed
     doc.text("Dienstplan Ministranten", 14, 20);
+    
     doc.setFontSize(12);
     doc.setTextColor(50, 50, 50);
     doc.text("St. Otmar / Weigheim", 14, 28);
 
+    let now = new Date().toLocaleDateString('de-DE');
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Automatisch generiert am: ${now}`, 14, 33);
+
+    // Tabelle
     doc.autoTable({
         startY: 38,
         head: [['Datum & Uhrzeit', 'Art der Feier', 'Eingeteilte Minis']],
         body: finalSchedule,
         theme: 'striped',
-        headStyles: { fillColor: [31, 41, 55] },
+        headStyles: { fillColor: [31, 41, 55] }, // churchDark
+        alternateRowStyles: { fillColor: [249, 250, 251] },
         styles: { font: 'helvetica', fontSize: 10, cellPadding: 5, valign: 'middle' },
-        columnStyles: { 0: { cellWidth: 35 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 70, fontStyle: 'bold', textColor: [185, 28, 28] } }
+        columnStyles: {
+            0: { cellWidth: 35, fontStyle: 'bold' },
+            1: { cellWidth: 'auto' },
+            2: { cellWidth: 70, fontStyle: 'bold', textColor: [185, 28, 28] } // churchRed
+        }
     });
 
+    // Download anstoßen
     doc.save('Dienstplan_Otmar.pdf');
 }
     </script>
