@@ -8,10 +8,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome für Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
+    <!-- Google Fonts (Nunito für ein freundliches, modernes Schriftbild) -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Bibliotheken für PDF-Erstellung und EXCEL -->
+    <!-- Bibliotheken für PDF-Erstellung, Word-Dokumente UND EXCEL -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -32,27 +32,32 @@
         }
     </script>
     <style>
+        /* Sanftes Ausblenden für SPA Navigation */
         .page-section { display: none; animation: fadeIn 0.5s; }
         .page-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
+        /* Sidebar transition für Mobile */
         #sidebar { transition: transform 0.3s ease-in-out; }
+
+        /* Drag & Drop Highlight für Dateiupload */
         .drag-over { border-color: #16a34a !important; background-color: #f0fdf4 !important; }
         
+        /* Scrollbar für die Review-Liste */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
-
-        /* KI-Smart Layout für News */
-        .smart-layout-even { flex-direction: row-reverse; }
-        .news-img-container { flex-shrink: 0; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased flex h-screen overflow-hidden relative">
 
-    <!-- GLOBALER LOGIN-SCHUTZ ANFANG -->
+    <!-- ======================================================================================= -->
+    <!-- GLOBALER LOGIN-SCHUTZ ANFANG                                                            -->
+    <!-- Um die Sperre der Webseite aufzuheben, lösche diesen Block vom ANFANG bis zum ENDE      -->
+    <!-- ======================================================================================= -->
     <style id="global-login-styles">
+        /* Versteckt die Webseite, solange das Passwort nicht eingegeben wurde */
         #app-wrapper { display: none !important; }
     </style>
 
@@ -81,7 +86,7 @@
             
             <div class="mt-6 pt-4 border-t border-gray-200 text-xs text-gray-500 text-left leading-relaxed">
                 <i class="fa-solid fa-lock text-churchGold mr-1"></i>
-                <strong>DSGVO-Hinweis:</strong> Es werden keine Daten an externe Server übertragen. Der Login-Status wird lokal im SessionStorage hinterlegt.
+                <strong>DSGVO-Hinweis:</strong> Es werden keine Daten an externe Server übertragen. Der Login-Status wird als technisch notwendiges Element rein lokal im Arbeitsspeicher (SessionStorage) deines Browsers hinterlegt und beim Schließen des Fensters gelöscht.
             </div>
         </div>
     </div>
@@ -94,27 +99,45 @@
             const form = document.getElementById('global-login-form');
             const errorMsg = document.getElementById('global-login-error');
             
+            // 1. Prüfen, ob der Nutzer in dieser Sitzung bereits eingeloggt ist
             if(sessionStorage.getItem('website_unlocked') === 'true') {
-                mask.remove(); styles.remove(); wrapper.style.display = 'flex'; return;
+                mask.remove(); // Maske löschen
+                styles.remove(); // CSS-Sperre aufheben, Seite wird sichtbar
+                wrapper.style.display = 'flex'; // Flex-Layout der Seite wiederherstellen
+                return;
             }
             
+            // 2. Login-Formular auswerten
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const user = document.getElementById('global-user').value.trim();
                 const pw = document.getElementById('global-pw').value.trim();
                 
+                // =========================================================
+                // HIER ZUGANGSDATEN ÄNDERN:
+                // =========================================================
                 if(user === 'admin' && pw === 'minis2026') {
+                    
+                    // Bei Erfolg: Lokal speichern und Maske ausblenden
                     sessionStorage.setItem('website_unlocked', 'true');
                     mask.style.opacity = '0';
-                    setTimeout(() => { mask.remove(); styles.remove(); wrapper.style.display = 'flex'; }, 300); 
+                    setTimeout(() => {
+                        mask.remove();
+                        styles.remove();
+                        wrapper.style.display = 'flex';
+                    }, 300); // Weicher Übergang
                 } else {
+                    // Bei Fehler:
                     errorMsg.classList.remove('hidden');
                     document.getElementById('global-pw').value = '';
                 }
             });
         });
     </script>
-    <!-- GLOBALER LOGIN-SCHUTZ ENDE -->
+    <!-- ======================================================================================= -->
+    <!-- GLOBALER LOGIN-SCHUTZ ENDE                                                              -->
+    <!-- ======================================================================================= -->
+
 
     <!-- WRAPPER DER WEBSEITE -->
     <div id="app-wrapper" class="w-full h-full flex">
@@ -130,25 +153,21 @@
             </button>
         </div>
 
+        <!-- Mobile Overlay -->
         <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
 
         <!-- Sidebar -->
         <aside id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 z-50 bg-white w-72 shadow-xl md:shadow-md flex flex-col h-full overflow-y-auto">
             <div class="p-6 text-center border-b border-gray-100 flex-shrink-0 cursor-pointer" onclick="navigate('home')">
-                <img src="assets/MINISSENB.jpeg" alt="Logo Platzhalter" class="mx-auto w-20 h-20 rounded-full mb-4 border-2 border-churchRed shadow-sm object-cover" onerror="this.src='https://picsum.photos/seed/churchlogo/200/200'">
+                <img src="assets/MINISSENB.jpeg" alt="Logo Platzhalter" class="mx-auto w-20 h-20 rounded-full mb-4 border-2 border-churchRed shadow-sm object-cover">
                 <span class="font-bold text-2xl text-churchDark block">Minis <br><span class="text-churchRed">Neckar-Baar</span></span>
             </div>
 
+            <!-- Navigation Links -->
             <nav class="flex flex-col py-6 space-y-1 font-semibold flex-grow px-4" id="nav-links">
-                <a href="#" onclick="navigate('home')" class="nav-link nav-link-home px-4 py-3 rounded-lg transition flex items-center bg-red-50 text-churchRed">
+                <a href="#" onclick="navigate('home')" class="nav-link nav-link-home px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center bg-red-50 text-churchRed">
                     <i class="fa-solid fa-house w-6"></i> Startseite
                 </a>
-                
-                <!-- NEU: NEWS NAVIGATION -->
-                <a href="#" onclick="navigate('news-page')" class="nav-link nav-link-news-page px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center">
-                    <i class="fa-solid fa-newspaper w-6"></i> News & Beiträge
-                </a>
-
                 <a href="#" onclick="navigate('about')" class="nav-link nav-link-about px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-churchRed transition flex items-center">
                     <i class="fa-solid fa-users w-6"></i> Über uns
                 </a>
@@ -195,37 +214,43 @@
                     </div>
 
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
-                        <!-- ... 3 Info Boxen unverändert ... -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="bg-white rounded-xl shadow-lg p-6 text-center border-t-4 border-churchRed hover:shadow-xl transition cursor-pointer" onclick="navigate('aktuelles')">
                                 <i class="fa-solid fa-calendar-alt text-4xl text-churchRed mb-4"></i>
                                 <h3 class="text-xl font-bold mb-2">Termine & Pläne</h3>
                                 <p class="text-gray-600 text-sm mb-4">Wann ist der nächste Gottesdienst oder die nächste Gruppenstunde?</p>
+                                <button class="text-churchRed font-bold hover:underline">Zum Kalender &rarr;</button>
                             </div>
                             <div class="bg-white rounded-xl shadow-lg p-6 text-center border-t-4 border-churchGold hover:shadow-xl transition cursor-pointer" onclick="navigate('mitmachen')">
                                 <i class="fa-solid fa-users text-4xl text-churchGold mb-4"></i>
                                 <h3 class="text-xl font-bold mb-2">Mach mit!</h3>
                                 <p class="text-gray-600 text-sm mb-4">Du hast Erstkommunion gefeiert und hast Lust auf eine tolle Gemeinschaft?</p>
+                                <button class="text-churchGold font-bold hover:underline">Infos für Neue &rarr;</button>
                             </div>
                             <div class="bg-white rounded-xl shadow-lg p-6 text-center border-t-4 border-churchRed hover:shadow-xl transition cursor-pointer" onclick="navigate('aktionen')">
                                 <i class="fa-solid fa-camera-retro text-4xl text-churchRed mb-4"></i>
                                 <h3 class="text-xl font-bold mb-2">Bilder & Aktionen</h3>
                                 <p class="text-gray-600 text-sm mb-4">Eindrücke vom letzten Zeltlager und unseren Ausflügen.</p>
+                                <button class="text-churchRed font-bold hover:underline">Zur Galerie &rarr;</button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="py-16 bg-white mt-12">
+                    <div class="py-16 bg-gray-50">
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                            <h2 class="text-3xl font-bold text-churchDark mb-6">Was machen wir eigentlich?</h2>
+                            <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-8">
+                                Als Ministrantinnen und Ministranten (kurz: Minis) unterstützen wir den Pfarrer im Gottesdienst. Wir tragen Kerzen, bringen Brot und Wein zum Altar und schwenken das Weihrauchfass. Aber wir sind noch viel mehr: Eine starke Gemeinschaft von Kindern und Jugendlichen, die zusammen Ausflüge macht, ins Zeltlager fährt und gemeinsam viel Spaß hat!
+                            </p>
+                            <button onclick="navigate('about')" class="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-full hover:bg-gray-300 transition">Mehr über uns erfahren</button>
+                        </div>
+                    </div>
+
+                    <div class="py-16 bg-white">
                         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-12">
-                            <!-- NEWS STARTSEITE WIDGET -->
                             <div>
-                                <div class="flex justify-between items-end mb-6 border-b-2 border-churchGold pb-2">
-                                    <h2 class="text-3xl font-bold text-churchDark"><i class="fa-solid fa-newspaper text-churchRed mr-2"></i>Aktuelles</h2>
-                                    <button onclick="navigate('news-page')" class="text-sm font-bold text-churchRed hover:underline mb-1">Alle News &rarr;</button>
-                                </div>
-                                <div id="news-container-home" class="space-y-6">
-                                    <p class="text-gray-500 text-sm"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Lade aktuelle Beiträge aus der Datenbank...</p>
-                                </div>
+                                <h2 class="text-3xl font-bold text-churchDark mb-6 border-b-2 border-churchGold pb-2"><i class="fa-solid fa-newspaper text-churchRed mr-2"></i>Aktuelles</h2>
+                                <div id="news-container" class="space-y-6"></div>
                             </div>
                             <div>
                                 <h2 class="text-3xl font-bold text-churchDark mb-6 border-b-2 border-churchGold pb-2"><i class="fa-regular fa-calendar text-churchRed mr-2"></i>Nächste Termine</h2>
@@ -238,27 +263,33 @@
                     </div>
                 </section>
 
-                <!-- NEU: NEWS SEITE (Öffentlich) -->
-                <section id="news-page" class="page-section bg-gray-50 py-12">
-                    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div class="text-center mb-12">
-                            <h2 class="text-4xl font-extrabold text-churchDark">News & Beiträge</h2>
-                            <p class="mt-4 text-xl text-gray-600">Neuigkeiten, Berichte und Ankündigungen aus unserer Gemeinschaft.</p>
-                        </div>
-                        
-                        <div id="public-news-feed" class="space-y-12">
-                            <div class="text-center py-10 text-gray-400"><i class="fa-solid fa-spinner fa-spin text-3xl"></i><p class="mt-2">Verbinde mit Datenbank...</p></div>
-                        </div>
-                    </div>
-                </section>
-
                 <!-- 2. ÜBER UNS -->
                 <section id="about" class="page-section bg-white py-12">
-                    <!-- Unverändert... -->
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-12">
                             <h2 class="text-4xl font-extrabold text-churchDark">Über Uns</h2>
+                            <p class="mt-4 text-xl text-gray-600">Lerne die Struktur und die Köpfe hinter den Ministranten Neckar-Baar kennen.</p>
                         </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+                            <div>
+                                <h3 class="text-2xl font-bold text-churchRed mb-4">Unsere Seelsorgeeinheit</h3>
+                                <p class="text-gray-700 leading-relaxed mb-4">
+                                    Die Seelsorgeeinheit Neckar-Baar umfasst mehrere Kirchengemeinden. Wir Ministranten arbeiten ortsübergreifend zusammen, unterstützen uns gegenseitig und feiern große Feste gemeinsam. 
+                                </p>
+                                <ul class="list-disc list-inside text-gray-700 space-y-2">
+                                    <li>St. Franziskus (VS-Schwenningen)</li>
+                                    <li>Mariä Himmelfahrt (VS-Schwenningen)</li>
+                                    <li>St. Otmar (VS-Weigheim)</li>
+                                    <li>St. Georg (VS-Mühlhausen)</li>
+                                    <li>St. Anna (VS-Tuningen)</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <img src="https://picsum.photos/seed/church/800/500" alt="Kirche" class="rounded-xl shadow-lg w-full h-auto object-cover">
+                            </div>
+                        </div>
+
                         <h3 class="text-2xl font-bold text-center text-churchDark mb-8 border-b-2 border-churchGold pb-2 inline-block">Die Leitungsrunde</h3>
                         <div id="leaders-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 text-center"></div>
                     </div>
@@ -266,34 +297,73 @@
 
                 <!-- 3. MINISTRANT WERDEN -->
                 <section id="mitmachen" class="page-section bg-gray-50 py-12">
-                    <!-- Unverändert... -->
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div class="text-center mb-12"><h2 class="text-4xl font-extrabold text-churchDark">Werde Teil unserer Gemeinschaft!</h2></div>
+                        <div class="text-center mb-12">
+                            <h2 class="text-4xl font-extrabold text-churchDark">Werde Teil unserer Gemeinschaft!</h2>
+                            <p class="mt-4 text-xl text-gray-600">Nach der Erstkommunion ist der perfekte Zeitpunkt, um bei uns einzusteigen.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
+                            <div>
+                                <h3 class="text-2xl font-bold text-churchRed mb-4">Warum Ministrant werden?</h3>
+                                <ul class="space-y-4">
+                                    <li class="flex items-start"><i class="fa-solid fa-check text-churchGold text-xl mt-1 mr-3"></i><div><h4 class="font-bold text-lg text-gray-800">Echte Gemeinschaft</h4><p class="text-gray-600">Finde neue Freunde über deine Schulklasse hinaus.</p></div></li>
+                                    <li class="flex items-start"><i class="fa-solid fa-check text-churchGold text-xl mt-1 mr-3"></i><div><h4 class="font-bold text-lg text-gray-800">Gottesdienst aktiv mitgestalten</h4><p class="text-gray-600">Statt nur zuzuhören, bist du mittendrin und hast eine wichtige Aufgabe.</p></div></li>
+                                    <li class="flex items-start"><i class="fa-solid fa-check text-churchGold text-xl mt-1 mr-3"></i><div><h4 class="font-bold text-lg text-gray-800">Action und Ausflüge</h4><p class="text-gray-600">Zeltlager, Europapark, Filmnächte – bei uns ist immer was los!</p></div></li>
+                                </ul>
+                            </div>
+                            <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-churchRed">
+                                <h3 class="text-2xl font-bold text-churchDark mb-4">Interesse? Melde dich an!</h3>
+                                <p class="text-sm text-gray-500 mb-6">Für Kinder und Eltern: Hinterlasst uns eure Kontaktdaten, und wir melden uns mit Infos zur nächsten Probe.</p>
+                                <form class="space-y-4" onsubmit="event.preventDefault(); alert('Vielen Dank für die Anfrage! Wir melden uns in Kürze.');">
+                                    <div><label class="block text-sm font-medium text-gray-700">Name des Kindes</label><input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border" required></div>
+                                    <div><label class="block text-sm font-medium text-gray-700">Alter</label><input type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border" required></div>
+                                    <div><label class="block text-sm font-medium text-gray-700">E-Mail (der Eltern)</label><input type="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border" required></div>
+                                    <button type="submit" class="w-full bg-churchRed text-white font-bold py-2 px-4 rounded hover:bg-red-800 transition">Infos anfordern</button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                            <h4 class="font-bold text-blue-800 text-lg mb-2"><i class="fa-solid fa-circle-info mr-2"></i>Informationen für Eltern</h4>
+                            <p class="text-blue-900 text-sm">Der Ministrantendienst ist freiwillig. Nach einer ca. 6-wöchigen Ausbildungsphase (Proben) findet die feierliche Aufnahme statt. Ein Dienstplan teilt die Kinder ca. 1-2 Mal im Monat für Gottesdienste ein. Bei allen unseren Aktionen gewährleisten geschulte Gruppenleiter die Aufsichtspflicht.</p>
+                        </div>
                     </div>
                 </section>
 
-                <!-- 4. AKTUELLES -->
+                <!-- 4. AKTUELLES & KALENDER -->
                 <section id="aktuelles" class="page-section bg-white py-12">
                     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-8">
                             <h2 class="text-4xl font-extrabold text-churchDark">Termine & Gottesdienstzeiten</h2>
+                            <p class="mt-4 text-xl text-gray-600">Das offizielle Programm der Seelsorgeeinheit Neckar-Baar.<br>Die Einteilung für die Gottesdienste findest du im <a href="#" onclick="navigate('intern')" class="text-churchRed underline hover:text-red-800">internen Bereich</a>.</p>
+                            
                             <div id="events-loading-status" class="mt-4 text-sm font-semibold text-gray-500">
                                 <i class="fa-solid fa-spinner fa-spin mr-2"></i> Termine werden aktualisiert...
                             </div>
                         </div>
+
                         <div class="flex justify-center mb-8 border-b border-gray-200">
-                            <button onclick="switchTab('tab-datum')" id="btn-tab-datum" class="px-6 py-3 text-lg font-bold text-churchRed border-b-4 border-churchRed outline-none">Nach Datum</button>
-                            <button onclick="switchTab('tab-ort')" id="btn-tab-ort" class="px-6 py-3 text-lg font-bold text-gray-500 border-b-4 border-transparent outline-none">Nach Ort</button>
+                            <button onclick="switchTab('tab-datum')" id="btn-tab-datum" class="px-6 py-3 text-lg font-bold text-churchRed border-b-4 border-churchRed focus:outline-none transition-colors">Nach Datum</button>
+                            <button onclick="switchTab('tab-ort')" id="btn-tab-ort" class="px-6 py-3 text-lg font-bold text-gray-500 border-b-4 border-transparent hover:text-churchRed focus:outline-none transition-colors">Nach Ort</button>
                         </div>
+
                         <div id="tab-datum" class="space-y-4 mb-12 block"></div>
                         <div id="tab-ort" class="mb-12 hidden grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start"></div>
+
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg mt-8 text-blue-900 text-sm shadow-sm">
+                            <strong>Hinweis:</strong> Wir Ministranten treffen uns für unseren Dienst in der Regel **15 Minuten** vor Beginn des Gottesdienstes in der Sakristei, um uns umzuziehen und einzuteilen.
+                        </div>
                     </div>
                 </section>
 
-                <!-- 5. AKTIONEN -->
+                <!-- 5. AKTIONEN & MEDIEN -->
                 <section id="aktionen" class="page-section bg-gray-50 py-12">
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div class="text-center mb-12"><h2 class="text-4xl font-extrabold text-churchDark">Aktionen & Gemeinschaft</h2></div>
+                        <div class="text-center mb-12">
+                            <h2 class="text-4xl font-extrabold text-churchDark">Aktionen & Gemeinschaft</h2>
+                            <p class="mt-4 text-xl text-gray-600">Einblicke in unser Minileben abseits des Altars.</p>
+                        </div>
                         <div id="gallery-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
                     </div>
                 </section>
@@ -303,27 +373,100 @@
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         
                         <div class="text-center mb-12">
-                            <h2 class="text-4xl font-extrabold text-churchDark"><i class="fa-solid fa-lock text-churchGold mr-3"></i>Interner Bereich</h2>
+                            <h2 class="text-4xl font-extrabold text-churchDark">
+                                <i class="fa-solid fa-lock text-churchGold mr-3"></i>Interner Bereich
+                            </h2>
+                            <p class="mt-4 text-xl text-gray-600">Geschützter Bereich für die Ministranten der SE Neckar-Baar.</p>
                         </div>
 
                         <!-- LOGIN CONTAINER -->
                         <div id="login-container" class="max-w-md mx-auto bg-gray-50 rounded-xl shadow-lg p-8 border border-gray-200">
+                            <p class="text-center text-gray-700 mb-6">Bitte gib das Passwort ein, um auf die Ministrantenpläne und internen Dokumente zuzugreifen.</p>
                             <form id="login-form" class="space-y-4">
-                                <input type="password" id="intern-pw" class="w-full px-4 py-3 rounded-lg border border-gray-300 outline-none" placeholder="Passwort eingeben..." required>
-                                <p id="login-error" class="text-red-600 text-sm hidden font-semibold">Falsches Passwort!</p>
-                                <button type="submit" class="w-full bg-churchRed text-white font-bold py-3 px-4 rounded-lg">Entsperren</button>
+                                <div><input type="password" id="intern-pw" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-churchRed focus:border-churchRed outline-none transition" placeholder="Passwort eingeben..." required></div>
+                                <p id="login-error" class="text-red-600 text-sm hidden font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Falsches Passwort! Bitte versuche es erneut.</p>
+                                <button type="submit" class="w-full bg-churchRed text-white font-bold py-3 px-4 rounded-lg hover:bg-red-800 transition shadow-md">Entsperren</button>
                             </form>
+                            <p class="text-xs text-center text-gray-500 mt-4">Tipp: Das Passwort gibt es bei der Gruppenleitung.</p>
                         </div>
 
-                        <!-- GESCHÜTZTER INHALT -->
+                        <!-- GESCHÜTZTER INHALT (Wird nach Login sichtbar) -->
                         <div id="protected-content" class="hidden">
-                            <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-8 flex justify-between rounded-r-lg shadow-sm">
-                                <p class="text-green-800 font-bold">Erfolgreich eingeloggt!</p>
-                                <button onclick="logoutIntern()" class="text-sm bg-white border border-gray-300 px-4 py-1 rounded">Abmelden</button>
+                            <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-8 flex flex-col sm:flex-row justify-between items-center gap-4 rounded-r-lg shadow-sm">
+                                <p class="text-green-800 font-bold"><i class="fa-solid fa-circle-check mr-2"></i>Erfolgreich eingeloggt!</p>
+                                <button onclick="logoutIntern()" class="text-sm bg-white text-gray-700 hover:text-churchRed px-4 py-2 rounded border border-gray-300 transition shadow-sm font-semibold">
+                                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Abmelden
+                                </button>
                             </div>
 
-                            <h3 class="text-2xl font-bold text-churchDark mb-6 border-b-2 border-churchGold pb-2">Downloads & Pläne</h3>
+                            <h3 class="text-2xl font-bold text-churchDark mb-6 border-b-2 border-churchGold pb-2">Downloads & Dokumente</h3>
                             
+                            <!-- ALLGEMEINE DOKUMENTE -->
+                            <div class="bg-blue-50 border-t-4 border-blue-500 rounded-xl p-6 shadow-md mb-10">
+                                <h4 class="text-xl font-bold text-blue-900 mb-4"><i class="fa-solid fa-folder-open text-blue-500 mr-2"></i>Übergreifend für alle Gemeinden</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <a href="dokumente/regeln_sakristei.pdf" target="_blank" class="flex items-center bg-white p-3 rounded-lg shadow-sm hover:shadow hover:bg-blue-100 border border-blue-100 transition group">
+                                        <i class="fa-regular fa-file-pdf text-3xl text-red-500 mr-4 group-hover:scale-110 transition-transform"></i>
+                                        <div><span class="block font-bold text-gray-800 text-sm group-hover:text-blue-900">Regeln in der Sakristei</span><span class="block text-xs text-gray-500">Allgemeiner Leitfaden</span></div>
+                                    </a>
+                                    <a href="dokumente/einladung_zeltlager.pdf" target="_blank" class="flex items-center bg-white p-3 rounded-lg shadow-sm hover:shadow hover:bg-blue-100 border border-blue-100 transition group">
+                                        <i class="fa-regular fa-file-pdf text-3xl text-red-500 mr-4 group-hover:scale-110 transition-transform"></i>
+                                        <div><span class="block font-bold text-gray-800 text-sm group-hover:text-blue-900">Anmeldung Sommerlager</span><span class="block text-xs text-gray-500">Inklusive Packliste</span></div>
+                                    </a>
+                                    <a href="dokumente/einverstaendniserklaerung.pdf" target="_blank" class="flex items-center bg-white p-3 rounded-lg shadow-sm hover:shadow hover:bg-blue-100 border border-blue-100 transition group">
+                                        <i class="fa-regular fa-file-pdf text-3xl text-red-500 mr-4 group-hover:scale-110 transition-transform"></i>
+                                        <div><span class="block font-bold text-gray-800 text-sm group-hover:text-blue-900">Einverständniserklärung</span><span class="block text-xs text-gray-500">Für Ausflüge (Eltern)</span></div>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <h4 class="text-xl font-bold text-churchDark mb-4"><i class="fa-solid fa-map-location-dot text-churchRed mr-2"></i>Dienstpläne nach Gemeinde</h4>
+
+                            <!-- GEMEINDEN GRID -->
+                            <!-- GEMEINDEN GRID -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                
+                                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2"><i class="fa-solid fa-church text-churchGold mr-2"></i> St. Franziskus</h4>
+                                    <div class="space-y-2 flex-grow">
+                                        <a href="dokumente/plan_franziskus_aktuell" id="link-franziskus-aktuell" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group"><i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i><div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed" id="text-franziskus-aktuell">Miniplan Aktueller Monat</span></div></a>
+                                        <a href="dokumente/plan_franziskus_naechster.pdf" id="link-franziskus-naechster" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group"><i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i><div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed" id="text-franziskus-naechster">Miniplan Nächster Monat</span></div></a>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2"><i class="fa-solid fa-church text-churchGold mr-2"></i> Mariä Himmelfahrt</h4>
+                                    <div class="space-y-2 flex-grow">
+                                        <a href="dokumente/plan_himmelfahrt_aktuell.pdf" id="link-himmelfahrt-aktuell" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group"><i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i><div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed" id="text-himmelfahrt-aktuell">Miniplan Aktueller Monat</span></div></a>
+                                        <a href="dokumente/plan_himmelfahrt_naechster.pdf" id="link-himmelfahrt-naechster" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group"><i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i><div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed" id="text-himmelfahrt-naechster">Miniplan Nächster Monat</span></div></a>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2"><i class="fa-solid fa-church text-churchGold mr-2"></i> St. Otmar</h4>
+                                    <div class="space-y-2 flex-grow">
+                                        <a href="dokumente/plan_otmar.pdf" id="link-otmar-aktuell" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group"><i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i><div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed" id="text-otmar-aktuell">Miniplan Aktueller Monat</span></div></a>
+                                        <a href="dokumente/plan_otmar_naechster.pdf" id="link-otmar-naechster" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group"><i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i><div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed" id="text-otmar-naechster">Miniplan Nächster Monat</span></div></a>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2"><i class="fa-solid fa-church text-churchGold mr-2"></i> St. Anna</h4>
+                                    <div class="space-y-2 flex-grow">
+                                        <a href="dokumente/plan_anna.pdf" id="link-anna-aktuell" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group"><i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i><div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed" id="text-anna-aktuell">Miniplan Aktueller Monat</span></div></a>
+                                        <a href="dokumente/plan_anna_naechster.pdf" id="link-anna-naechster" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group"><i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i><div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed" id="text-anna-naechster">Miniplan Nächster Monat</span></div></a>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition border-t-4 border-churchRed flex flex-col">
+                                    <h4 class="font-bold text-gray-800 text-lg mb-3 flex items-center border-b pb-2"><i class="fa-solid fa-church text-churchGold mr-2"></i> St. Georg</h4>
+                                    <div class="space-y-2 flex-grow">
+                                        <a href="dokumente/plan_georg.pdf" id="link-georg-aktuell" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group"><i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i><div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed" id="text-georg-aktuell">Miniplan Aktueller Monat</span></div></a>
+                                        <a href="dokumente/plan_georg_naechster.pdf" id="link-georg-naechster" target="_blank" class="flex items-center p-2 hover:bg-red-50 rounded transition group"><i class="fa-regular fa-file-pdf text-2xl text-red-500 mr-3 group-hover:scale-110 transition-transform"></i><div><span class="block font-semibold text-gray-800 text-sm group-hover:text-churchRed" id="text-georg-naechster">Miniplan Nächster Monat</span></div></a>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- OBERMINI-BEREICH -->
                             <div class="mt-16 pt-8 border-t border-gray-200 flex justify-end">
                                 <button onclick="toggleOberminiAuth()" class="text-gray-400 hover:text-churchRed transition text-sm flex items-center">
@@ -333,116 +476,624 @@
 
                             <div id="obermini-auth-box" class="hidden mt-4 bg-gray-50 border border-gray-200 p-6 rounded-xl shadow-sm max-w-sm ml-auto animate-[fadeIn_0.3s_ease-out]">
                                 <h4 class="font-bold text-gray-800 mb-2">Obermini Zugang</h4>
-                                <input type="password" id="om-pw-input" placeholder="Passwort..." class="w-full px-3 py-2 rounded border border-gray-300 mb-3 outline-none">
-                                <button onclick="loginObermini()" class="bg-churchDark text-white px-4 py-2 rounded font-bold w-full">Einloggen</button>
+                                <input type="password" id="om-pw-input" placeholder="Passwort..." class="w-full px-3 py-2 rounded border border-gray-300 mb-3 focus:border-churchRed outline-none">
+                                <p id="om-error" class="text-red-600 text-xs hidden mb-3">Falsches Passwort!</p>
+                                <button onclick="loginObermini()" class="bg-churchDark text-white px-4 py-2 rounded font-bold text-sm hover:bg-gray-800 w-full transition">Einloggen</button>
                             </div>
 
                             <div id="obermini-workspace" class="hidden mt-6 animate-[fadeIn_0.3s_ease-out]">
-                                
-                                <!-- NEU: NEWS DATENBANK VERWALTUNG -->
-                                <div class="bg-white border-t-4 border-purple-600 rounded-xl shadow-lg p-6 sm:p-8 mb-8">
-                                    <div class="flex justify-between items-center mb-6 border-b pb-4">
-                                        <h3 class="text-2xl font-bold text-churchDark"><i class="fa-solid fa-database text-purple-600 mr-2"></i>News-Datenbank verwalten</h3>
-                                        <button onclick="closeOberminiWorkspace()" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
-                                    </div>
-                                    
-                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                        <!-- Formular zum Eintragen in die Datenbank -->
-                                        <div class="bg-purple-50 p-6 rounded-xl border border-purple-200">
-                                            <h4 class="font-bold text-purple-900 mb-4 text-lg"><i class="fa-solid fa-pen-nib mr-2"></i>Neuen DB-Eintrag erstellen</h4>
-                                            
-                                            <form id="admin-news-form" class="space-y-4">
-                                                <div>
-                                                    <label class="block text-sm font-bold text-gray-700 mb-1">Titel / Überschrift</label>
-                                                    <input type="text" id="db-news-title" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-purple-500 outline-none" required>
-                                                </div>
-                                                <div class="grid grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label class="block text-sm font-bold text-gray-700 mb-1">Datum</label>
-                                                        <input type="date" id="db-news-date" class="w-full px-3 py-2 rounded border border-gray-300 outline-none" required>
-                                                    </div>
-                                                    <div>
-                                                        <label class="block text-sm font-bold text-gray-700 mb-1">Kategorie</label>
-                                                        <input type="text" id="db-news-category" placeholder="z.B. Aktion, Lager..." class="w-full px-3 py-2 rounded border border-gray-300 outline-none" required>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label class="block text-sm font-bold text-gray-700 mb-1">Textinhalt</label>
-                                                    <textarea id="db-news-text" rows="4" class="w-full px-3 py-2 rounded border border-gray-300 outline-none" required></textarea>
-                                                </div>
-                                                <div>
-                                                    <label class="block text-sm font-bold text-gray-700 mb-1">Titelbild hochladen <br><span class="font-normal text-xs text-gray-500">KI optimiert das Bild automatisch für die Datenbank</span></label>
-                                                    <input type="file" id="db-news-image" accept="image/*" class="w-full text-sm border border-gray-300 bg-white rounded p-1 cursor-pointer">
-                                                </div>
-                                                
-                                                <button type="button" onclick="submitNewsToDB()" id="btn-submit-news" class="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded hover:bg-purple-800 transition shadow flex justify-center items-center">
-                                                    In Datenbank speichern
-                                                </button>
-                                                <p id="db-status-msg" class="text-sm font-bold text-center hidden"></p>
-                                            </form>
-                                        </div>
-
-                                        <!-- Übersicht der Einträge in der DB -->
-                                        <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 flex flex-col h-full">
-                                            <h4 class="font-bold text-gray-800 mb-4 text-lg"><i class="fa-solid fa-server mr-2"></i>Einträge auf dem Server</h4>
-                                            <div id="admin-news-list" class="flex-grow max-h-[450px] overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                                                <p class="text-sm text-gray-500 italic">Lade Daten...</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- DIENSTPLAN-GENERATOR BEREICH (Unverändert) -->
                                 <div class="bg-white border-t-4 border-churchGold rounded-xl shadow-lg p-6 sm:p-8 mb-8">
                                     <div class="flex justify-between items-center mb-8 border-b pb-4">
-                                        <h3 class="text-2xl font-bold text-churchDark"><i class="fa-solid fa-wand-magic-sparkles text-churchGold mr-2"></i>Dienstplan-Generator</h3>
+                                        <h3 class="text-2xl font-bold text-churchDark"><i class="fa-solid fa-wand-magic-sparkles text-churchGold mr-2"></i>Dienstplan-Generator (St. Otmar / Weigheim)</h3>
+                                        <button onclick="closeOberminiWorkspace()" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
                                     </div>
+
                                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                        <!-- DB Minis -->
+                                        <!-- LINKE SEITE -->
                                         <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                                            <h4 class="font-bold text-lg mb-2 text-churchDark"><i class="fa-solid fa-users text-churchRed mr-2"></i>Ministranten & Sperrdaten</h4>
+                                            <p class="text-xs text-gray-500 mb-4 leading-relaxed">
+                                                <span class="text-churchGold font-bold"><i class="fa-solid fa-link"></i> Geschwister-Regel:</span> Verbinde Namen mit <b>&</b>, <b>und</b> oder einem <b>Komma</b> (z.B. <i>Max, Lisa & Tom</i>). Die KI zählt die Personen automatisch und teilt sie <b>immer gemeinsam</b> ein!
+                                            </p>
                                             <div class="flex gap-2 mb-4">
-                                                <input type="text" id="new-mini-name" placeholder="Name..." class="flex-grow px-3 py-2 border rounded text-sm">
-                                                <button onclick="addMiniToDB()" class="bg-churchRed text-white px-4 py-2 rounded font-bold"><i class="fa-solid fa-plus"></i></button>
+                                                <input type="text" id="new-mini-name" placeholder="z.B. Max, Lisa & Tom..." class="flex-grow px-3 py-2 border border-gray-300 rounded focus:border-churchRed outline-none text-sm shadow-sm">
+                                                <button onclick="addMiniToDB()" class="bg-churchRed text-white px-4 py-2 rounded font-bold hover:bg-red-800 text-sm shadow-sm transition"><i class="fa-solid fa-plus"></i></button>
                                             </div>
-                                            <div class="max-h-96 overflow-y-auto pr-2 space-y-3" id="om-db-list"></div>
+                                            <div class="max-h-96 overflow-y-auto pr-2 border-t pt-4 space-y-3 custom-scrollbar" id="om-db-list"></div>
                                         </div>
-                                        <!-- Upload Excel -->
+
+                                        <!-- RECHTE SEITE -->
                                         <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 flex flex-col justify-between relative">
                                             <div id="om-upload-view" class="block">
-                                                <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-white cursor-pointer mb-4">
+                                                <h4 class="font-bold text-lg mb-4 text-churchDark"><i class="fa-solid fa-file-excel text-green-600 mr-2"></i>Excel-Termine einlesen</h4>
+                                                <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-white hover:bg-gray-50 transition cursor-pointer mb-4">
                                                     <i class="fa-solid fa-file-excel text-3xl text-green-500 mb-2"></i>
+                                                    <p class="text-sm font-semibold text-gray-600">.xlsx (Excel) hier ablegen</p>
                                                     <input type="file" id="file-input" accept=".xlsx, .xls" class="hidden">
                                                 </div>
-                                                <textarea id="text-fallback" rows="3" class="w-full text-sm p-3 rounded border border-gray-300 mb-4" placeholder="Daten einfügen..."></textarea>
-                                                <button onclick="processUpload()" class="bg-churchDark text-white font-bold py-2 px-6 rounded">Daten scannen</button>
+                                                <textarea id="text-fallback" rows="3" class="w-full text-sm p-3 rounded border border-gray-300 focus:border-churchRed outline-none mb-4 shadow-sm" placeholder="Oder kopierte Excel-Zellen hier einfügen..."></textarea>
+                                                <div class="flex items-center justify-between mt-2">
+                                                    <button onclick="processUpload()" class="bg-churchDark text-white font-bold py-2 px-6 rounded hover:bg-gray-800 transition shadow text-sm">Daten scannen</button>
+                                                    <span class="text-sm font-bold text-gray-500" id="om-event-count">0 Termine erkannt</span>
+                                                </div>
                                             </div>
+
                                             <div id="om-review-view" class="hidden flex-col h-full">
-                                                <div id="om-review-list" class="flex-grow max-h-[300px] overflow-y-auto space-y-2 mb-4"></div>
-                                                <button onclick="generatePDF()" class="w-full bg-churchGold text-churchDark font-bold py-3 rounded-lg">PDF erstellen</button>
+                                                <div class="flex justify-between items-center mb-4">
+                                                    <h4 class="font-bold text-lg text-churchDark"><i class="fa-solid fa-list-check text-churchGold mr-2"></i>Gefundene Termine prüfen</h4>
+                                                    <button onclick="resetUploadView()" class="text-xs text-gray-500 hover:text-churchRed underline">Abbrechen & Neu scannen</button>
+                                                </div>
+                                                <div id="om-review-list" class="flex-grow max-h-[300px] overflow-y-auto space-y-2 pr-2 custom-scrollbar mb-4 border-y border-gray-200 py-4"></div>
+                                                <div class="flex justify-start mb-6">
+                                                    <button onclick="addReviewEvent()" class="text-xs bg-white border border-gray-300 px-3 py-1 rounded shadow-sm hover:bg-gray-50 font-bold text-gray-700 transition"><i class="fa-solid fa-plus mr-1"></i> Fehlenden Termin ergänzen</button>
+                                                </div>
+                                                <div class="pt-2">
+                                                    <button onclick="generatePDF()" class="w-full bg-churchGold text-churchDark hover:bg-yellow-500 font-bold py-3 rounded-lg flex justify-center items-center transition shadow-lg"><i class="fa-solid fa-file-pdf mr-2 text-xl"></i> Dienstplan (PDF) jetzt erstellen</button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
+                                <!-- NEUE UPLOAD-ZENTRALE FÜR ALLE GEMEINDEN -->
+                                <div class="bg-white border-t-4 border-blue-500 rounded-xl shadow-lg p-6 sm:p-8">
+                                    <h3 class="text-2xl font-bold text-churchDark mb-2"><i class="fa-solid fa-cloud-arrow-up text-blue-500 mr-2"></i>Dienstpläne veröffentlichen</h3>
+                                    <p class="text-gray-600 mb-6 border-b pb-4">Lade fertige PDF-Dienstpläne hoch, um die Download-Links im internen Bereich (weiter oben) für die Minis zu aktualisieren.</p>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end bg-gray-50 p-6 rounded-xl border border-gray-200">
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-700 mb-2">Gemeinde auswählen</label>
+                                            <select id="upload-parish" class="w-full text-sm border border-gray-300 rounded-lg p-3 focus:border-blue-500 outline-none bg-white">
+                                                <option value="franziskus">St. Franziskus</option>
+                                                <option value="himmelfahrt">Mariä Himmelfahrt</option>
+                                                <option value="otmar">St. Otmar</option>
+                                                <option value="anna">St. Anna</option>
+                                                <option value="georg">St. Georg</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-700 mb-2">Zeitraum</label>
+                                            <select id="upload-month" class="w-full text-sm border border-gray-300 rounded-lg p-3 focus:border-blue-500 outline-none bg-white">
+                                                <option value="aktuell">Aktueller Monat</option>
+                                                <option value="naechster">Nächster Monat</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-700 mb-2">PDF auswählen</label>
+                                            <input type="file" id="upload-pdf-file" accept=".pdf" class="w-full text-sm border border-gray-300 bg-white rounded-lg p-2 file:border-0 file:bg-gray-200 file:font-bold file:px-4 file:py-1 file:rounded file:mr-2 cursor-pointer focus:outline-none">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-6 flex flex-col md:flex-row items-center gap-4">
+                                        <button onclick="publishPlan()" class="w-full md:w-auto bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-800 transition shadow-md">
+                                            Plan jetzt freischalten
+                                        </button>
+                                        <p id="upload-status" class="text-sm font-bold hidden"></p>
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-4"><i class="fa-solid fa-circle-info"></i> Da die Webseite ohne Datenbank läuft, werden hochgeladene Pläne sicher im Zwischenspeicher des Browsers hinterlegt.</p>
+                                </div>
+                            </div>
+
+                            <!-- ENDE OBERMINI BEREICH -->
+                            
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. KONTAKT -->
+                <section id="kontakt" class="page-section bg-gray-50 py-12">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="text-center mb-12">
+                            <h2 class="text-4xl font-extrabold text-churchDark">Kontakt</h2>
+                            <p class="mt-4 text-xl text-gray-600">Hast du Fragen? Schreib uns einfach!</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                            <div class="bg-white p-8 rounded-xl shadow border border-gray-100">
+                                <form onsubmit="event.preventDefault(); alert('Nachricht gesendet!');" class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Dein Name</label>
+                                        <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">E-Mail Adresse</label>
+                                        <input type="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Betreff</label>
+                                        <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border">
+                                            <option>Allgemeine Frage</option>
+                                            <option>Ministrant werden</option>
+                                            <option>Zeltlager</option>
+                                            <option>Dienstplan</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Zusätzliche Info / Bemerkung</label>
+                                        <input type="text" placeholder="HIER INDIVIDUELLEN HINWEIS EINTRAGEN" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Nachricht</label>
+                                        <textarea rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-churchRed focus:ring-churchRed sm:text-sm p-2 border" required></textarea>
+                                    </div>
+                                    <button type="submit" class="w-full bg-churchRed text-white font-bold py-2 px-4 rounded hover:bg-red-800 transition">Nachricht senden</button>
+                                </form>
+                            </div>
+
+                            <div class="space-y-8">
+                                <div>
+                                    <h3 class="text-2xl font-bold text-churchDark mb-4">Ansprechpartner</h3>
+                                    <div class="flex items-start mb-4">
+                                        <i class="fa-solid fa-location-dot text-churchRed text-xl mt-1 mr-4 w-6 text-center"></i>
+                                        <div>
+                                            <p class="font-bold text-gray-800">Katholisches Pfarramt Neckar-Baar</p>
+                                            <p class="text-gray-600">Kirchplatz 1<br>78xxx Musterstadt</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center mb-4">
+                                        <i class="fa-solid fa-phone text-churchRed text-xl mr-4 w-6 text-center"></i>
+                                        <p class="text-gray-600">07700 / 123 456</p>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fa-solid fa-envelope text-churchRed text-xl mr-4 w-6 text-center"></i>
+                                        <p class="text-churchRed font-semibold hover:underline cursor-pointer">minis@se-neckar-baar.de</p>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gray-200 w-full h-64 rounded-xl flex items-center justify-center shadow-inner relative overflow-hidden">
+                                    <img src="https://picsum.photos/seed/map/800/400" alt="Karte" class="w-full h-full object-cover opacity-50">
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                        <i class="fa-solid fa-map-location-dot text-4xl text-gray-600 mb-2"></i>
+                                        <span class="font-bold text-gray-700 bg-white/80 px-4 py-1 rounded">Interaktive Karte (Platzhalter)</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </section>
-                
-                <!-- 7. KONTAKT -->
-                <section id="kontakt" class="page-section bg-gray-50 py-12">
-                    <div class="text-center mb-12"><h2 class="text-4xl font-extrabold text-churchDark">Kontakt</h2></div>
-                </section>
 
             </main>
+
+            <!-- FOOTER -->
+            <footer class="bg-churchDark text-gray-300 py-10 mt-auto">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+                    <div>
+                        <h4 class="text-white font-bold text-lg mb-4">Minis Neckar-Baar</h4>
+                        <p class="text-sm mb-4">Eine lebendige Gemeinschaft von Kindern und Jugendlichen in der katholischen Seelsorgeeinheit Neckar-Baar.</p>
+                        <div class="flex justify-center md:justify-start space-x-4">
+                            <a href="#" class="text-gray-400 hover:text-white text-xl transition"><i class="fa-brands fa-instagram"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-white text-xl transition"><i class="fa-brands fa-facebook"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-white text-xl transition"><i class="fa-brands fa-youtube"></i></a>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-white font-bold text-lg mb-4">Schnelllinks</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="#" onclick="navigate('home')" class="hover:text-churchGold transition">Startseite</a></li>
+                            <li><a href="#" onclick="navigate('aktuelles')" class="hover:text-churchGold transition">Termine & Gottesdienste</a></li>
+                            <li><a href="#" onclick="navigate('mitmachen')" class="hover:text-churchGold transition">Ministrant werden</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-white font-bold text-lg mb-4">Rechtliches</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="#" onclick="alert('Impressum...')" class="hover:text-white transition">Impressum</a></li>
+                            <li><a href="#" onclick="alert('Datenschutz...')" class="hover:text-white transition">Datenschutz</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </footer>
         </div>
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
 // =========================================
-// 1. NAVIGATION & UI LOGIK
+// 1. KONFIGURATION & STATISCHE DATEN
 // =========================================
+
+const heroImageURL = "assets/HomeBanner.jpeg";
+
+const newsData =[
+    {
+        title: "Rückblick: Sommerlager 2025",
+        category: "Lagerbericht",
+        text: "Es war ein unvergessliches Wochenende mit Geländespielen, Lagerfeuer und toller Stimmung...",
+        image: "https://picsum.photos/seed/lager/100/100"
+    },
+    {
+        title: "Sternsingeraktion ein voller Erfolg",
+        category: "Aktion",
+        text: "Über 5.000 Euro konnten wir in diesem Jahr für Kinder in Not sammeln. Danke an alle Helfer!",
+        image: "https://picsum.photos/seed/stern/100/100"
+    }
+];
+
+const leadersData =[
+    { name: "Jill Manuel", role: "Oberministrant", text: "Dabei seit 2017. St. Otmar", img: "assets/Jill Manuel.jpeg" },
+    { name: "Simon", role: "Oberministrant", text: "Dabei seit 2017. St. Anna", img: "assets/Simon.jpeg" },
+    { name: "Vincent", role: "Oberministrant", text: "Dabei seit 2018. St. Franziskus", img: "assets/Vincent Steinman.jpeg" },
+    { name: "Paula", role: "Angeh. Oberministrantin", text: "St. Franziskus", img: "assets/ProfilbildAsthnd.jpeg" },
+    { name: "Rafael", role: "Angeh. Oberministrant", text: "St.Anna", img: "assets/ProfilbildAsthnd.jpeg" }
+];
+
+const galleryData =[
+    { title: "Sommerzeltlager", text: "Das Highlight jedes Jahres!", img: "https://picsum.photos/seed/zeltlager/400/300" },
+    { title: "Sternsinger", text: "Segen bringen, Segen sein.", img: "https://picsum.photos/seed/sternsinger/400/300" },
+    { title: "Kletterpark", text: "Miniausflug im Herbst.", img: "https://picsum.photos/seed/ausflug/400/300" }
+];
+
+// =========================================
+// 2. INITIALISIERUNG BEIM LADEN
+// =========================================
+document.addEventListener("DOMContentLoaded", () => {
+    initHero();
+    renderNews();
+    renderLeaders();
+    renderGallery();
+    
+    fetchAndProcessLiveEvents();
+});
+
+function initHero() {
+    const banner = document.getElementById('hero-banner');
+    if(banner) banner.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url('${heroImageURL}')`;
+}
+
+function renderNews() {
+    const container = document.getElementById('news-container');
+    if(container) container.innerHTML = newsData.map(news => `
+        <div class="flex gap-4 items-start bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition">
+            <img src="${news.image}" alt="${news.title}" class="w-24 h-24 rounded-lg object-cover shadow">
+            <div>
+                <span class="text-xs font-bold text-churchGold uppercase tracking-wide">${news.category}</span>
+                <h4 class="text-lg font-bold text-gray-800 hover:text-churchRed cursor-pointer">${news.title}</h4>
+                <p class="text-sm text-gray-600 mt-1">${news.text}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderLeaders() {
+    const container = document.getElementById('leaders-container');
+    if(container) container.innerHTML = leadersData.map(l => `
+        <div class="bg-gray-50 rounded-xl p-6 shadow hover:shadow-md transition">
+            <img src="${l.img}" alt="${l.name}" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-churchRed object-cover">
+            <h4 class="font-bold text-lg">${l.name}</h4>
+            <p class="text-sm text-churchGold font-semibold">${l.role}</p>
+            <p class="text-xs text-gray-500 mt-2">${l.text}</p>
+        </div>
+    `).join('');
+}
+
+function renderGallery() {
+    const container = document.getElementById('gallery-container');
+    if(container) container.innerHTML = galleryData.map(g => `
+        <div class="group relative overflow-hidden rounded-xl shadow-lg cursor-pointer">
+            <img src="${g.img}" alt="${g.title}" class="w-full h-64 object-cover transform group-hover:scale-110 transition duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6">
+                <h3 class="text-white font-bold text-xl">${g.title}</h3>
+                <p class="text-gray-300 text-sm">${g.text}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+// =========================================
+// 3. 100% LIVE ABRUF & PARSING
+// =========================================
+async function fetchRawHtml(targetUrl) {
+    const proxies =[
+        `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
+        `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`,
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
+    ];
+
+    for (let proxy of proxies) {
+        try {
+            const response = await fetch(proxy, { cache: "no-store" });
+            if (!response.ok) continue;
+
+            if (proxy.includes('allorigins')) {
+                const data = await response.json();
+                if(data.contents) return data.contents;
+            } else {
+                const text = await response.text();
+                if(text) return text;
+            }
+        } catch (e) {
+            console.warn(`Proxy ${proxy} blockiert, versuche nächsten...`);
+        }
+    }
+    throw new Error("Sicherheits- oder Netzwerkblockade. senb.de konnte über keinen Proxy erreicht werden.");
+}
+
+async function fetchAndProcessLiveEvents() {
+    const statusDiv = document.getElementById('events-loading-status');
+    if(statusDiv) statusDiv.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Umgehe Blockaden und analysiere Live-Termine...`;
+
+    try {
+        const targetUrl = 'https://senb.de/gottesdienste/gottesdienstzeiten';
+        const htmlText = await fetchRawHtml(targetUrl);
+        
+        let html = htmlText.replace(/<(div|p|tr|li|ul|table|h[1-6]|br)[^>]*>/gi, '\n');
+        html = html.replace(/<\/(div|p|tr|li|ul|table|h[1-6])>/gi, '\n');
+        
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const plainText = doc.body.textContent;
+        const lines = plainText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        
+        let rawEvents =[];
+        let currentDate = null;
+        let currentEvent = null;
+
+        for (let line of lines) {
+            if (line === "suchen" || line.includes("Alle Gottesdienstarten") || line.includes("Alle Gemeinden") || line.includes("Alle Zeiträume") || line.includes("Suche")) continue;
+
+            let dateMatch = line.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+            if (dateMatch && (line.match(/^(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)/i) || line.length < 30)) {
+                currentDate = `${dateMatch[3]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}`;
+                continue;
+            }
+
+            let timeMatch = line.match(/^(\d{1,2})[:\.](\d{2})(?:\s*Uhr)?/i);
+            if (timeMatch) {
+                if (currentEvent && currentEvent.title.length > 0) {
+                    rawEvents.push(currentEvent);
+                }
+                
+                let timeStr = `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
+                currentEvent = { date: currentDate, time: timeStr, location: "", title:[] };
+                
+                let rest = line.replace(timeMatch[0], '').trim();
+                if (rest) currentEvent.location = rest;
+                
+                continue;
+            }
+
+            if (currentEvent) {
+                if (!currentEvent.location) {
+                    currentEvent.location = line; 
+                } else {
+                    currentEvent.title.push(line); 
+                }
+            }
+        }
+        
+        if (currentEvent && currentEvent.title.length > 0) {
+            rawEvents.push(currentEvent);
+        }
+
+        const finalEvents =[];
+        const now = new Date();
+        now.setHours(0,0,0,0);
+
+        rawEvents.forEach(ev => {
+            if(!ev.date) return;
+            ev.title = ev.title.join(' - '); 
+            if (!ev.title && ev.location.length > 30) {
+                const parts = ev.location.split(/(?:,\s*(?=St\.|VS-)| - )/);
+                if(parts.length > 1) {
+                    ev.location = parts[0];
+                    ev.title = parts.slice(1).join(' - ');
+                }
+            }
+            if(!ev.location) ev.location = "Ort in der Seelsorgeeinheit";
+            if(!ev.title) ev.title = "Gottesdienst / Termin";
+
+            let tLower = (ev.title + " " + ev.location).toLowerCase();
+            ev.category = "Gottesdienst"; 
+            if (tLower.includes('probe') || tLower.includes('ministranten')) ev.category = "Miniprobe";
+            else if (tLower.match(/beicht|versöhnung/)) ev.category = "Beichte";
+            else if (tLower.match(/rosenkranz|gebet|taizé|anbetung|andacht|vesper|laudes|morgenlob|friedensgebet/)) ev.category = "Gebet";
+            else if (tLower.match(/kreuzweg|ausflug|treffen|sitzung|wanderung/)) ev.category = "Aktion";
+            else if (tLower.match(/kroatisch|rum-orth|ukrainisch|tamilisch/)) ev.category = "Gastgemeinde";
+
+            const evDate = new Date(`${ev.date}T00:00:00`);
+            const diffDays = Math.ceil((evDate - now) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays >= 0 && diffDays <= 60) {
+                finalEvents.push(ev);
+            }
+        });
+
+        if (finalEvents.length > 0) {
+            const uniqueEvents = finalEvents.filter((v, i, a) => 
+                a.findIndex(t => (t.date === v.date && t.time === v.time && t.title === v.title && t.location === v.location)) === i
+            ).sort((a, b) => new Date(`${a.date}T${a.time}:00`) - new Date(`${b.date}T${b.time}:00`));
+            
+            updateUI(uniqueEvents, true, `Erfolgreich geladen: ${uniqueEvents.length} Termine live aus senb.de`);
+        } else {
+            throw new Error("Live-Abruf war erfolgreich, aber im Text der Website wurden keine anstehenden Termine gefunden.");
+        }
+
+    } catch (error) {
+        console.error("Live-Abruf gescheitert:", error);
+        if(statusDiv) {
+            statusDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-600 mr-2"></i> <b>Fehler:</b> ${error.message}`;
+        }
+        updateUI([], false, "");
+    }
+}
+
+
+// =========================================
+// 4. RENDERING DER TERMINE IM HTML
+// =========================================
+function updateUI(events, isSuccess, message) {
+    const statusDiv = document.getElementById('events-loading-status');
+    if (isSuccess && statusDiv) {
+        statusDiv.innerHTML = `<i class="fa-solid fa-check text-green-600 font-bold mr-2"></i> <span class="text-green-800 font-bold">${message}</span>`;
+    }
+
+    renderNextEventsPreview(events);
+    renderEventsTabDatum(events);
+    renderEventsTabOrt(events);
+}
+
+function renderNextEventsPreview(events) {
+    const container = document.getElementById('next-events-container');
+    if (!container) return;
+    const upcomingEvents = events.slice(0, 4); 
+
+    if (upcomingEvents.length === 0) {
+        container.innerHTML = `<li class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center shadow-sm"><i class="fa-regular fa-calendar-xmark text-4xl text-gray-400 mb-2"></i><h4 class="font-bold text-gray-700">Keine Termine verfügbar</h4><p class="text-sm text-gray-500">Es konnten keine aktuellen Termine geladen werden.</p></li>`;
+        return;
+    }
+
+    container.innerHTML = upcomingEvents.map(ev => {
+        const d = new Date(ev.date);
+        const day = d.getDate().toString().padStart(2, '0');
+        const monthStr = d.toLocaleString('de-DE', { month: 'short' });
+        
+        let borderColor = "border-red-400";
+        if (ev.category === "Miniprobe") borderColor = "border-green-500";
+        else if (ev.category === "Beichte") borderColor = "border-purple-500";
+        else if (ev.category === "Gebet") borderColor = "border-blue-500";
+        else if (ev.category === "Aktion") borderColor = "border-yellow-500";
+        else if (ev.category === "Gastgemeinde") borderColor = "border-gray-400";
+
+        return `
+        <li class="bg-gray-50 rounded-lg p-4 flex items-center shadow-sm border-l-4 ${borderColor}">
+            <div class="bg-white p-2 rounded text-center min-w-[60px] shadow-sm mr-4">
+                <span class="block text-sm text-churchRed font-bold uppercase">${monthStr}</span>
+                <span class="block text-xl font-bold text-gray-800">${day}</span>
+            </div>
+            <div class="flex-grow">
+                <h4 class="font-bold text-gray-800 leading-tight">${ev.title}</h4>
+                <p class="text-sm text-gray-500 mt-1"><i class="fa-regular fa-clock mr-1"></i> ${ev.time} Uhr | <i class="fa-solid fa-location-dot ml-1 mr-1"></i> ${ev.location}</p>
+            </div>
+        </li>`;
+    }).join('');
+}
+
+function renderEventsTabDatum(events) {
+    const container = document.getElementById('tab-datum');
+    if (!container) return;
+    if (events.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center bg-gray-50 border border-gray-200 rounded-xl shadow-sm"><i class="fa-solid fa-calendar-xmark text-4xl text-gray-400 mb-4"></i><br><span class="font-bold text-gray-600 text-lg">Keine Termine gefunden</span></div>`;
+        return;
+    }
+    const grouped = events.reduce((acc, ev) => {
+        if (!acc[ev.date]) acc[ev.date] =[];
+        acc[ev.date].push(ev);
+        return acc;
+    }, {});
+
+    container.innerHTML = Object.keys(grouped).sort().map(dateStr => {
+        const dayEvents = grouped[dateStr];
+        const d = new Date(dateStr);
+        const niceDate = d.toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        const eventsHtml = dayEvents.map(ev => {
+            let badgeClass = "bg-red-100 text-red-800";
+            if (ev.category === "Miniprobe") badgeClass = "bg-green-100 text-green-800";
+            else if (ev.category === "Beichte") badgeClass = "bg-purple-100 text-purple-800";
+            else if (ev.category === "Gebet") badgeClass = "bg-blue-100 text-blue-800";
+            else if (ev.category === "Aktion") badgeClass = "bg-yellow-100 text-yellow-800";
+            else if (ev.category === "Gastgemeinde") badgeClass = "bg-gray-200 text-gray-800";
+
+            return `
+            <li class="py-4 hover:bg-gray-50 px-2 rounded-lg flex flex-col md:flex-row gap-4 md:items-center transition">
+                <div class="text-churchRed font-bold md:min-w-[110px] text-lg">${ev.time} Uhr</div>
+                <div class="flex-grow"><h4 class="font-bold text-gray-900 text-lg">${ev.title}</h4><p class="text-gray-600 text-sm"><i class="fa-solid fa-location-dot mr-1"></i>${ev.location}</p></div>
+                <div class="md:text-right text-xs"><span class="${badgeClass} px-3 py-1 rounded-full font-bold shadow-sm">${ev.category}</span></div>
+            </li>`;
+        }).join('');
+
+        return `
+        <details class="group bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4" open>
+            <summary class="flex justify-between items-center font-bold cursor-pointer list-none p-5 bg-gray-50 hover:bg-gray-100 transition focus:outline-none">
+                <div class="flex items-center gap-3"><i class="fa-regular fa-calendar-days text-churchRed text-xl"></i><span class="text-xl text-churchDark">${niceDate}</span></div>
+                <span class="transition-transform duration-300 group-open:rotate-180 text-churchRed"><i class="fa-solid fa-chevron-down text-xl"></i></span>
+            </summary>
+            <div class="p-5 border-t border-gray-200 bg-white"><ul class="divide-y divide-gray-100">${eventsHtml}</ul></div>
+        </details>`;
+    }).join('');
+}
+
+function renderEventsTabOrt(events) {
+    const container = document.getElementById('tab-ort');
+    if (!container) return;
+    if (events.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center bg-gray-50 border border-gray-200 rounded-xl w-full col-span-full shadow-sm"><i class="fa-solid fa-calendar-xmark text-4xl text-gray-400 mb-4"></i><br><span class="font-bold text-gray-600 text-lg">Keine Termine gefunden</span></div>`;
+        return;
+    }
+
+    const grouped = events.reduce((acc, ev) => {
+        const loc = ev.location || "Weitere Orte";
+        if (!acc[loc]) acc[loc] =[];
+        acc[loc].push(ev);
+        return acc;
+    }, {});
+
+    container.innerHTML = Object.keys(grouped).sort().map(locName => {
+        const locEvents = grouped[locName];
+        const eventsHtml = locEvents.map(ev => {
+            const d = new Date(ev.date);
+            const niceDateShort = d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+            
+            let borderClass = "border-red-400";
+            if (ev.category === "Miniprobe") borderClass = "border-green-500";
+            else if (ev.category === "Beichte") borderClass = "border-purple-500";
+            else if (ev.category === "Gebet") borderClass = "border-blue-500";
+            else if (ev.category === "Aktion") borderClass = "border-yellow-500";
+            else if (ev.category === "Gastgemeinde") borderClass = "border-gray-400";
+
+            return `
+            <li class="flex flex-col border-l-2 ${borderClass} pl-3 mb-3">
+                <span class="text-sm font-bold text-churchRed">${niceDateShort} | ${ev.time} Uhr</span>
+                <span class="text-gray-800 font-semibold text-sm">${ev.title}</span>
+            </li>`;
+        }).join('');
+
+        return `<div class="bg-white rounded-xl shadow-md border-t-4 border-churchRed p-6 w-full h-full flex flex-col"><h3 class="text-xl font-bold text-churchDark mb-4 border-b pb-2 leading-tight"><i class="fa-solid fa-church text-churchGold mr-2"></i>${locName}</h3><ul class="space-y-1 flex-grow">${eventsHtml}</ul></div>`;
+    }).join('');
+}
+
+// =========================================
+// 5. UI INTERAKTIONEN (TABS, NAVIGATION, LOGIN)
+// =========================================
+function switchTab(tabId) {
+    document.getElementById('tab-datum').classList.replace('block', 'hidden');
+    document.getElementById('tab-ort').classList.add('hidden');
+    document.getElementById('tab-ort').classList.replace('grid', 'hidden'); 
+    
+    document.getElementById('btn-tab-datum').classList.replace('border-churchRed', 'border-transparent');
+    document.getElementById('btn-tab-datum').classList.replace('text-churchRed', 'text-gray-500');
+    
+    document.getElementById('btn-tab-ort').classList.replace('border-churchRed', 'border-transparent');
+    document.getElementById('btn-tab-ort').classList.replace('text-gray-500', 'text-churchRed');
+
+    if(tabId === 'tab-datum') {
+        document.getElementById('tab-datum').classList.replace('hidden', 'block');
+        document.getElementById('btn-tab-datum').classList.replace('border-transparent', 'border-churchRed');
+        document.getElementById('btn-tab-datum').classList.replace('text-gray-500', 'text-churchRed');
+    } else {
+        document.getElementById('tab-ort').classList.remove('hidden');
+        document.getElementById('tab-ort').classList.add('grid');
+        document.getElementById('btn-tab-ort').classList.replace('border-transparent', 'border-churchRed');
+        document.getElementById('btn-tab-ort').classList.replace('text-gray-500', 'text-churchRed');
+    }
+}
+
+const mobileBtn = document.getElementById('mobile-menu-btn');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+
+if(mobileBtn) mobileBtn.addEventListener('click', toggleSidebar);
+
+function toggleSidebar() {
+    const isClosed = sidebar.classList.contains('-translate-x-full');
+    if (isClosed) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+    }
+}
+
 function navigate(pageId) {
     document.querySelectorAll('.page-section').forEach(section => section.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
@@ -460,224 +1111,49 @@ function navigate(pageId) {
     }
 
     if (window.innerWidth < 768) { 
-        document.getElementById('sidebar').classList.add('-translate-x-full');
-        document.getElementById('sidebar-overlay').classList.add('hidden');
-    }
-    document.getElementById('main-scroll-area').scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    if (sidebar.classList.contains('-translate-x-full')) {
-        sidebar.classList.remove('-translate-x-full');
-        overlay.classList.remove('hidden');
-    } else {
         sidebar.classList.add('-translate-x-full');
         overlay.classList.add('hidden');
     }
-}
-
-// =========================================
-// 2. NEWS DATENBANK & REST-API LOGIK
-// =========================================
-// HINWEIS: Da diese HTML-Datei auf dem Client läuft, nutzt sie fetch() um
-// mit deiner Datenbank (Backend-Server) zu sprechen.
-const API_URL = "api/news.php"; // Pfad zum PHP-Backend (Code dafür siehe ganz unten)
-
-let globalNewsDB = [];
-
-// Lädt die Daten aus der echten Datenbank beim Seitenstart
-async function loadNewsFromRealDB() {
-    try {
-        const res = await fetch(API_URL);
-        if(!res.ok) throw new Error("Backend nicht gefunden");
-        globalNewsDB = await res.json();
-    } catch (error) {
-        console.warn("REST API Fehler. Fallback auf lokalen Speicher (Simulation), bis Backend eingerichtet ist.", error);
-        // Fallback, solange kein PHP Server eingerichtet ist:
-        const local = localStorage.getItem('senb_news_db');
-        globalNewsDB = local ? JSON.parse(local) : [];
-    }
     
-    // UI nach Ladevorgang aktualisieren
-    renderNewsAll();
+    document.getElementById('main-scroll-area').scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// KI Bild-Komprimierung (Verhindert Datenbank-Abstürze durch zu große Bilder)
-async function compressImageToDataURL(file) {
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 800; // Smart Resize
-                const scaleSize = MAX_WIDTH / img.width;
-                canvas.width = MAX_WIDTH;
-                canvas.height = img.height * scaleSize;
-                
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                resolve(canvas.toDataURL('image/jpeg', 0.7)); // Komprimiert als JPEG (70% Quali)
-            }
-        };
+// LOGIK FÜR DEN INTERNEN BEREICH
+const loginForm = document.getElementById('login-form');
+const loginContainer = document.getElementById('login-container');
+const protectedContent = document.getElementById('protected-content');
+const errorMsg = document.getElementById('login-error');
+
+if(loginForm) {
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const pw = document.getElementById('intern-pw').value;
+        if(pw === 'johnundschmollisminis26') {
+            loginContainer.classList.add('hidden');
+            protectedContent.classList.remove('hidden');
+            protectedContent.classList.add('block');
+            errorMsg.classList.add('hidden');
+            document.getElementById('intern-pw').value = '';
+        } else {
+            errorMsg.classList.remove('hidden');
+        }
     });
 }
 
-// Eintrag in Datenbank speichern (POST)
-async function submitNewsToDB() {
-    const btn = document.getElementById('btn-submit-news');
-    const statusMsg = document.getElementById('db-status-msg');
-    
-    const title = document.getElementById('db-news-title').value.trim();
-    const date = document.getElementById('db-news-date').value;
-    const category = document.getElementById('db-news-category').value.trim();
-    const text = document.getElementById('db-news-text').value.trim();
-    const fileInput = document.getElementById('db-news-image');
-
-    if(!title || !date || !text) { alert("Bitte fülle alle Pflichtfelder aus!"); return; }
-
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Verarbeite & Speichere...';
-    btn.disabled = true;
-
-    try {
-        let imageData = "https://picsum.photos/seed/placeholder/800/500"; // Platzhalter
-        if(fileInput.files.length > 0) {
-            imageData = await compressImageToDataURL(fileInput.files[0]);
-        }
-
-        const newPost = {
-            id: Date.now().toString(), // Einmalige ID
-            title: title,
-            date: date,
-            category: category,
-            text: text,
-            image: imageData,
-            timestamp: new Date().getTime()
-        };
-
-        // Versuch, an echte DB zu senden
-        try {
-            await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newPost)
-            });
-        } catch(e) {
-            // Fallback (Simulation)
-            globalNewsDB.unshift(newPost);
-            localStorage.setItem('senb_news_db', JSON.stringify(globalNewsDB));
-        }
-
-        // Formular leeren & neu laden
-        document.getElementById('admin-news-form').reset();
-        await loadNewsFromRealDB();
-
-        statusMsg.innerHTML = '<i class="fa-solid fa-check text-green-500 mr-1"></i> Erfolgreich in der Datenbank gespeichert!';
-        statusMsg.classList.remove('hidden');
-        setTimeout(() => statusMsg.classList.add('hidden'), 3000);
-
-    } catch (err) {
-        alert("Fehler beim Speichern!");
-        console.error(err);
-    } finally {
-        btn.innerHTML = 'In Datenbank speichern';
-        btn.disabled = false;
-    }
+function logoutIntern() {
+    protectedContent.classList.add('hidden');
+    protectedContent.classList.remove('block');
+    loginContainer.classList.remove('hidden');
+    if(typeof closeOberminiWorkspace === 'function') closeOberminiWorkspace();
 }
 
-// Löschen aus Datenbank (DELETE)
-async function deleteNewsFromDB(id) {
-    if(!confirm("Möchtest du diesen Beitrag wirklich unwiderruflich aus der Datenbank löschen?")) return;
-    
-    try {
-        await fetch(`${API_URL}?id=${id}`, { method: 'DELETE' });
-    } catch(e) {
-        // Fallback Simulation
-        globalNewsDB = globalNewsDB.filter(n => n.id !== id);
-        localStorage.setItem('senb_news_db', JSON.stringify(globalNewsDB));
-    }
-    
-    await loadNewsFromRealDB();
-}
+// =================================================================================================
+// 6. OBERMINI VERWALTUNG, EXCEL SMART SCAN & PDF GENERATOR
+// =================================================================================================
 
-// Rendering der News (Startseite, News-Seite, Admin-Liste)
-function renderNewsAll() {
-    // Sortiere chronologisch (Neueste zuerst)
-    const sortedNews = [...globalNewsDB].sort((a,b) => new Date(b.date) - new Date(a.date));
+let minisDB = [];
+let extractedEventsObermini = []; 
 
-    // 1. Admin Liste füllen
-    const adminList = document.getElementById('admin-news-list');
-    if(adminList) {
-        if(sortedNews.length === 0) adminList.innerHTML = '<p class="text-sm text-gray-500 italic">Die Datenbank ist leer.</p>';
-        else adminList.innerHTML = sortedNews.map(n => `
-            <div class="bg-white border border-gray-200 p-3 rounded shadow-sm flex justify-between items-center">
-                <div>
-                    <span class="text-xs font-bold text-gray-400 block">${n.date}</span>
-                    <h5 class="font-bold text-churchDark text-sm">${n.title}</h5>
-                </div>
-                <button onclick="deleteNewsFromDB('${n.id}')" class="text-red-500 hover:text-red-700 p-2"><i class="fa-solid fa-trash-can"></i></button>
-            </div>
-        `).join('');
-    }
-
-    // 2. Startseite (nur die neuesten 2 Beiträge im kleinen Format)
-    const homeContainer = document.getElementById('news-container-home');
-    if(homeContainer) {
-        if(sortedNews.length === 0) homeContainer.innerHTML = '<p class="text-sm text-gray-500">Keine aktuellen Nachrichten vorhanden.</p>';
-        else homeContainer.innerHTML = sortedNews.slice(0, 2).map(n => `
-            <div class="flex gap-4 items-start bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition cursor-pointer" onclick="navigate('news-page')">
-                <img src="${n.image}" alt="${n.title}" class="w-24 h-24 rounded-lg object-cover shadow flex-shrink-0">
-                <div>
-                    <span class="text-xs font-bold text-churchGold uppercase tracking-wide">${n.category} | ${new Date(n.date).toLocaleDateString('de-DE')}</span>
-                    <h4 class="text-lg font-bold text-gray-800 hover:text-churchRed transition">${n.title}</h4>
-                    <p class="text-sm text-gray-600 mt-1 line-clamp-2">${n.text}</p>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    // 3. News-Page Feed (KI-Layouting mit Alternierenden Blöcken)
-    const publicFeed = document.getElementById('public-news-feed');
-    if(publicFeed) {
-        if(sortedNews.length === 0) publicFeed.innerHTML = '<div class="text-center py-10 text-gray-500"><i class="fa-regular fa-folder-open text-4xl mb-3 block"></i>Noch keine Beiträge vorhanden.</div>';
-        else {
-            publicFeed.innerHTML = sortedNews.map((n, index) => {
-                // KI-Smart Layout: Abwechselnd Bild Links / Rechts
-                const reverseClass = (index % 2 !== 0) ? 'md:flex-row-reverse' : 'md:flex-row';
-                const formattedDate = new Date(n.date).toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
-                
-                return `
-                <article class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition duration-300">
-                    <div class="flex flex-col ${reverseClass} h-full">
-                        <div class="md:w-5/12 relative h-64 md:h-auto overflow-hidden group">
-                            <img src="${n.image}" alt="News Bild" class="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition duration-700">
-                            <div class="absolute top-4 left-4 bg-churchRed text-white text-xs font-bold px-3 py-1 rounded shadow-md uppercase tracking-wider">${n.category}</div>
-                        </div>
-                        <div class="md:w-7/12 p-8 md:p-10 flex flex-col justify-center">
-                            <div class="text-sm font-bold text-churchGold mb-2"><i class="fa-regular fa-calendar mr-2"></i>${formattedDate}</div>
-                            <h3 class="text-2xl md:text-3xl font-extrabold text-churchDark mb-4 leading-tight">${n.title}</h3>
-                            <div class="text-gray-600 leading-relaxed whitespace-pre-line text-lg">${n.text}</div>
-                        </div>
-                    </div>
-                </article>
-                `;
-            }).join('');
-        }
-    }
-}
-
-// Initiale Ladung beim Start
-document.addEventListener("DOMContentLoaded", () => {
-    loadNewsFromRealDB();
-});
-
-// =========================================
-// 3. OBERMINI LOGIN LOGIK
-// =========================================
 function toggleOberminiAuth() {
     document.getElementById('obermini-auth-box').classList.toggle('hidden');
 }
@@ -688,109 +1164,532 @@ function loginObermini() {
         document.getElementById('obermini-auth-box').classList.add('hidden');
         document.getElementById('obermini-workspace').classList.remove('hidden');
         document.getElementById('om-pw-input').value = '';
+        initMinisDB(); 
     } else {
-        alert("Falsches Passwort!");
+        document.getElementById('om-error').classList.remove('hidden');
     }
 }
 
 function closeOberminiWorkspace() {
-    document.getElementById('obermini-workspace').classList.add('hidden');
+    const workspace = document.getElementById('obermini-workspace');
+    if(workspace) workspace.classList.add('hidden');
+    const authBox = document.getElementById('obermini-auth-box');
+    if(authBox) authBox.classList.add('hidden');
+    resetUploadView();
 }
 
-// Weitere Funktionen für Interner Bereich / Login
-const loginForm = document.getElementById('login-form');
-if(loginForm) {
-    loginForm.addEventListener('submit', function(e) {
+function initMinisDB() {
+    const stored = localStorage.getItem('senb_otmar_minis_v2');
+    if (stored) {
+        minisDB = JSON.parse(stored);
+    } else {
+        minisDB = [
+            { id: 1, name: "Jill Manuel", blocked: "" },
+            { id: 2, name: "Simon", blocked: "" },
+            { id: 3, name: "Vincent", blocked: "" },
+            { id: 4, name: "Paula", blocked: "" },
+            { id: 5, name: "Rafael", blocked: "" }
+        ];
+        saveMinisDB();
+    }
+    renderMiniList();
+}
+
+function saveMinisDB() {
+    minisDB.forEach(m => {
+        const input = document.getElementById(`sperr-${m.id}`);
+        if(input) m.blocked = input.value;
+    });
+    localStorage.setItem('senb_otmar_minis_v2', JSON.stringify(minisDB));
+}
+
+function renderMiniList() {
+    const container = document.getElementById('om-db-list');
+    if(!container) return;
+    
+    container.innerHTML = minisDB.map(mini => `
+        <div class="bg-white p-3 rounded shadow-sm border border-gray-200 flex flex-col gap-2 relative group">
+            <div class="flex justify-between items-center">
+                <span class="font-bold text-sm text-churchDark"><i class="fa-solid fa-user text-churchGold mr-2"></i>${mini.name}</span>
+                <button onclick="deleteMini(${mini.id})" class="text-red-400 hover:text-red-600 transition" title="Ministrant löschen"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+            <div class="flex items-center">
+                <span class="text-xs text-gray-500 w-20">Sperrdaten:</span>
+                <input type="text" id="sperr-${mini.id}" value="${mini.blocked || ''}" onchange="saveMinisDB()" class="flex-grow bg-gray-50 border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:border-churchRed shadow-inner" placeholder="z.B. 12.04, 25.04">
+            </div>
+        </div>
+    `).join('');
+}
+
+function addMiniToDB() {
+    const input = document.getElementById('new-mini-name');
+    if(input && input.value.trim()) {
+        saveMinisDB(); 
+        minisDB.push({ id: Date.now(), name: input.value.trim(), blocked: "" });
+        saveMinisDB();
+        input.value = '';
+        renderMiniList();
+    }
+}
+
+function deleteMini(id) {
+    if(confirm("Möchtest du diesen Ministranten wirklich aus der Datenbank löschen?")) {
+        minisDB = minisDB.filter(m => m.id !== id);
+        saveMinisDB();
+        renderMiniList();
+    }
+}
+
+// --- EXCEL UPLOAD & SMART KI SCANNER ---
+// --- EXCEL UPLOAD & LOKALE MUSTERERKENNUNGS-KI ---
+// --- EXCEL UPLOAD & SPEZIELL TRAINIERTE LOKALE KI ---
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+if(dropZone) {
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        const pw = document.getElementById('intern-pw').value;
-        if(pw === 'johnundschmollisminis26') {
-            document.getElementById('login-container').classList.add('hidden');
-            const protected = document.getElementById('protected-content');
-            protected.classList.remove('hidden');
-            protected.classList.add('block');
-            document.getElementById('login-error').classList.add('hidden');
-            document.getElementById('intern-pw').value = '';
-        } else {
-            document.getElementById('login-error').classList.remove('hidden');
+        dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+}
+
+if(fileInput) {
+    fileInput.addEventListener('change', function() {
+        if (this.files.length) handleFile(this.files[0]);
+    });
+}
+
+function handleFile(file) {
+    const fileName = file.name.toLowerCase();
+    document.getElementById('om-event-count').innerHTML = "<i class='fa-solid fa-spinner fa-spin text-churchRed'></i> Analysiere Tabellenstruktur...";
+
+    if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                // WICHTIG: Verbundene Zellen auflösen (z.B. Datum über 2 Zeilen)
+                if (firstSheet['!merges']) {
+                    firstSheet['!merges'].forEach(merge => {
+                        let topLeftCell = firstSheet[XLSX.utils.encode_cell({c: merge.s.c, r: merge.s.r})];
+                        if (!topLeftCell) return;
+                        for (let R = merge.s.r; R <= merge.e.r; ++R) {
+                            for (let C = merge.s.c; C <= merge.e.c; ++C) {
+                                let targetCell = XLSX.utils.encode_cell({c: C, r: R});
+                                if (!firstSheet[targetCell]) firstSheet[targetCell] = Object.assign({}, topLeftCell);
+                            }
+                        }
+                    });
+                }
+                
+                const rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, raw: false, defval: ""});
+                runTrainedExcelAI(rows);
+            } catch (err) {
+                alert("Fehler beim Lesen der Excel-Datei: " + err.message);
+                document.getElementById('om-event-count').innerHTML = "Fehler beim Lesen.";
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    } else {
+        alert("Bitte eine gültige Excel-Datei (.xlsx) hochladen.");
+    }
+}
+
+function processUpload() {
+    const text = document.getElementById('text-fallback').value;
+    if(text.trim().length > 10) {
+        const rows = text.split('\n').map(line => line.split('\t'));
+        runTrainedExcelAI(rows);
+    } else {
+        alert("Bitte lade eine Excel-Datei hoch oder füge Daten ein.");
+    }
+}
+
+// KI: SPEZIELL TRAINIERT AUF DAS NECKAR-BAAR PFARRPLAN-LAYOUT
+function runTrainedExcelAI(rows) {
+    let events = [];
+    let lastFoundDate = "Unbekannt";
+    let lastFoundEventTitleFromDate = "";
+    
+    let targetColIndex = -1;
+    let dateColIndex = 0; // Spalte A (0) ist fast immer das Datum
+
+    // 1. ÜBERSCHRIFTEN-ANALYSE: Finde die Spalte für Weigheim/Otmar
+    for (let i = 0; i < Math.min(5, rows.length); i++) {
+        for (let j = 0; j < rows[i].length; j++) {
+            let cellText = String(rows[i][j]).toLowerCase();
+            if (cellText.includes("weigheim") || cellText.includes("otmar")) {
+                targetColIndex = j;
+            }
+        }
+    }
+
+    // Fallback, falls die Überschrift fehlt: Nimm einfach Spalte B (1)
+    if (targetColIndex === -1) targetColIndex = 1;
+
+    // 2. ZEILEN-ANALYSE
+    for (let y = 1; y < rows.length; y++) { // Starte bei 1, um Header zu überspringen
+        let row = rows[y];
+        if (!row || row.length === 0) continue;
+
+        let dateCell = String(row[dateColIndex] || "").trim();
+        let targetCell = String(row[targetColIndex] || "").trim();
+
+        // Wenn in der Ziel-Zelle nur ein "-" steht oder sie leer ist -> Überspringen
+        if (!targetCell || targetCell === "-" || targetCell === "") continue;
+
+        // A. DATUM EXTRAHIEREN (aus Spalte A)
+        let dateMatch = dateCell.match(/\b(\d{1,2})\.(\d{1,2})\.(?:\d{2,4})?\b/);
+        if (dateMatch) {
+            lastFoundDate = dateMatch[0];
+            if(!lastFoundDate.match(/\d{4}/)) lastFoundDate = `${dateMatch[1].padStart(2,'0')}.${dateMatch[2].padStart(2,'0')}.`;
+            
+            // Suche nach Sondernamen in der Datumsspalte, z.B. "(Gründonnerstag)"
+            let titleMatch = dateCell.match(/\((.*?)\)/);
+            if (titleMatch && titleMatch[1]) {
+                lastFoundEventTitleFromDate = titleMatch[1].trim();
+            } else {
+                lastFoundEventTitleFromDate = "";
+            }
+        }
+
+        // B. UHRZEIT & TITEL EXTRAHIEREN (aus der Weigheim-Spalte)
+        let timeMatch = targetCell.match(/\b(\d{1,2})[:\.](\d{2})\b/);
+        
+        if (timeMatch) {
+            let time = `${timeMatch[1].padStart(2,'0')}:${timeMatch[2]}`;
+            
+            // Bereinige den Text in der Zelle, um den Gottesdienstnamen zu erhalten
+            let typeText = targetCell
+                .replace(timeMatch[0], '')     // Uhrzeit entfernen
+                .replace(/uhr/ig, '')          // "Uhr" entfernen
+                .replace(/[\(\)]/g, '')        // Klammern entfernen z.B. bei (EKO)
+                .trim();
+
+            // Wenn in der Zelle nur die Uhrzeit stand (Text ist leer), 
+            // nimm den Namen aus der Datumsspalte (z.B. "Ostersonntag")
+            if (typeText.length < 3 && lastFoundEventTitleFromDate.length > 2) {
+                typeText = lastFoundEventTitleFromDate;
+            }
+
+            // Fallback, falls absolut gar nichts da steht
+            if (typeText.length < 3) typeText = "Gottesdienst";
+
+            // C. FILTER LOGIK (WGF Aussortieren)
+            let isWGF = typeText.toLowerCase().includes("wgf") || 
+                        typeText.toLowerCase().includes("wort-gottes") || 
+                        typeText.toLowerCase().includes("wortgottes");
+
+            if (!isWGF) {
+                // Verhindert, dass der gleiche Termin doppelt eingelesen wird
+                let isDuplicate = events.some(e => e.date === lastFoundDate && e.time === time);
+                
+                if (!isDuplicate) {
+                    events.push({
+                        date: lastFoundDate,
+                        time: time,
+                        type: typeText.substring(0, 60), // Titel für PDF begrenzen
+                        count: "2" // Bereitstellung für das Dropdown-Menü
+                    });
+                }
+            }
+        }
+    }
+
+    // 3. ÜBERGABE AN DIE BENUTZEROBERFLÄCHE (Failsafe-Menü)
+    extractedEventsObermini = events;
+    const countLabel = document.getElementById('om-event-count');
+    
+    if(events.length === 0) {
+        countLabel.innerHTML = "<span class='text-red-500'>Keine relevanten Termine in der Weigheim-Spalte gefunden.</span>";
+    } else {
+        countLabel.innerHTML = `<span class='text-green-600 bg-green-100 px-2 py-1 rounded shadow-sm font-bold'><i class="fa-solid fa-check mr-1"></i> ${events.length} Termine erkannt!</span>`;
+        showReviewView(); // Öffnet die Liste zur finalen Bearbeitung
+    }
+}
+// --- REVIEW / FAILSAFE ANSICHT ---
+function showReviewView() {
+    document.getElementById('om-upload-view').classList.replace('block', 'hidden');
+    document.getElementById('om-review-view').classList.replace('hidden', 'flex');
+    renderReviewList();
+}
+
+function resetUploadView() {
+    extractedEventsObermini = [];
+    document.getElementById('om-review-view').classList.replace('flex', 'hidden');
+    document.getElementById('om-upload-view').classList.replace('hidden', 'block');
+    document.getElementById('om-event-count').innerHTML = "0 Termine erkannt";
+    if(document.getElementById('text-fallback')) document.getElementById('text-fallback').value = '';
+    if(document.getElementById('file-input')) document.getElementById('file-input').value = '';
+}
+
+// Speichert Änderungen aus der HTML Liste zurück ins JavaScript Array
+function syncReviewData() {
+    extractedEventsObermini.forEach((ev, idx) => {
+        const dEl = document.getElementById(`rev-date-${idx}`);
+        if(dEl) {
+            ev.date = dEl.value;
+            ev.time = document.getElementById(`rev-time-${idx}`).value;
+            ev.type = document.getElementById(`rev-type-${idx}`).value;
+            ev.count = document.getElementById(`rev-count-${idx}`).value;
         }
     });
 }
-function logoutIntern() {
-    document.getElementById('protected-content').classList.add('hidden');
-    document.getElementById('login-container').classList.remove('hidden');
-    closeOberminiWorkspace();
-}
 
-// Die statischen Daten für About und Aktionen (unverändert)
-document.addEventListener("DOMContentLoaded", () => {
-    const leadersData =[
-        { name: "Jill Manuel", role: "Oberministrant", text: "Dabei seit 2017. St. Otmar", img: "assets/Jill Manuel.jpeg" },
-        { name: "Simon", role: "Oberministrant", text: "Dabei seit 2017. St. Anna", img: "assets/Simon.jpeg" },
-        { name: "Vincent", role: "Oberministrant", text: "Dabei seit 2018. St. Franziskus", img: "assets/Vincent Steinman.jpeg" }
-    ];
-    
-    const lC = document.getElementById('leaders-container');
-    if(lC) lC.innerHTML = leadersData.map(l => `
-        <div class="bg-gray-50 rounded-xl p-6 shadow hover:shadow-md transition">
-            <img src="${l.img}" alt="${l.name}" onerror="this.src='https://picsum.photos/seed/face/200'" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-churchRed object-cover">
-            <h4 class="font-bold text-lg">${l.name}</h4>
-            <p class="text-sm text-churchGold font-semibold">${l.role}</p>
+function renderReviewList() {
+    const container = document.getElementById('om-review-list');
+    if(!container) return;
+
+    if(extractedEventsObermini.length === 0) {
+        container.innerHTML = '<p class="text-sm text-gray-500 italic">Keine Termine in der Liste.</p>';
+        return;
+    }
+
+    container.innerHTML = extractedEventsObermini.map((ev, idx) => `
+        <div class="bg-white border border-gray-200 rounded p-2 flex flex-col sm:flex-row gap-2 items-center shadow-sm">
+            <div class="flex gap-2 w-full sm:w-auto">
+                <input type="text" id="rev-date-${idx}" value="${ev.date}" class="w-20 text-xs border rounded p-1 focus:border-churchRed outline-none" placeholder="Datum">
+                <input type="text" id="rev-time-${idx}" value="${ev.time}" class="w-12 text-xs border rounded p-1 focus:border-churchRed outline-none" placeholder="Zeit">
+            </div>
+            <input type="text" id="rev-type-${idx}" value="${ev.type}" class="flex-grow text-xs border rounded p-1 focus:border-churchRed outline-none w-full sm:w-auto" placeholder="Gottesdienst Art">
+            <div class="flex gap-2 w-full sm:w-auto justify-end">
+                <select id="rev-count-${idx}" class="text-xs border rounded p-1 focus:border-churchRed outline-none font-bold bg-gray-50">
+                    <option value="1" ${ev.count === '1' ? 'selected' : ''}>1 Mini</option>
+                    <option value="2" ${ev.count === '2' ? 'selected' : ''}>2 Minis</option>
+                    <option value="3" ${ev.count === '3' ? 'selected' : ''}>3 Minis</option>
+                    <option value="4" ${ev.count === '4' ? 'selected' : ''}>4 Minis</option>
+                    <option value="5" ${ev.count === '5' ? 'selected' : ''}>5 Minis</option>
+                    <option value="6" ${ev.count === '6' ? 'selected' : ''}>6 Minis</option>
+                    <option value="ALLE" ${ev.count === 'ALLE' ? 'selected' : ''}>ALLE</option>
+                </select>
+                <button onclick="deleteReviewEvent(${idx})" class="text-red-500 hover:text-red-700 p-1" title="Termin löschen"><i class="fa-solid fa-xmark"></i></button>
+            </div>
         </div>
     `).join('');
-});
+}
 
-    </script>
+function deleteReviewEvent(idx) {
+    syncReviewData(); // Zuerst aktuelle Texteingaben sichern
+    extractedEventsObermini.splice(idx, 1);
+    renderReviewList();
+}
 
-    <!-- 
-    ========================================================================
-    WICHTIGE DOKUMENTATION FÜR DEN SERVER-ADMIN (ECHTE DATENBANK)
-    ========================================================================
-    Da HTML keine Datenbanken hosten kann, wird eine `news.php` Datei auf dem Server benötigt.
-    Erstelle eine Datei namens "news.php" in einem Ordner namens "api" auf deinem Webspace
-    mit folgendem Inhalt (anpassen an deine MySQL Daten):
-
-    <?php
-    header("Content-Type: application/json");
-    header("Access-Control-Allow-Origin: *");
-    header("Access-Control-Allow-Methods: GET, POST, DELETE");
-
-    $host = 'localhost';
-    $db = 'deine_datenbank_name';
-    $user = 'dein_datenbank_user';
-    $pass = 'dein_passwort';
-    $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8mb4", $user, $pass);
-
-    $method = $_SERVER['REQUEST_METHOD'];
-
-    if ($method == 'GET') {
-        $stmt = $pdo->query("SELECT * FROM senb_news ORDER BY date DESC");
-        echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
-    } 
-    elseif ($method == 'POST') {
-        $data = json_decode(file_get_contents('php://input'), true);
-        $stmt = $pdo->prepare("INSERT INTO senb_news (id, title, date, category, text, image) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$data['id'], $data['title'], $data['date'], $data['category'], $data['text'], $data['image']]);
-        echo json_encode(["status" => "success"]);
-    } 
-    elseif ($method == 'DELETE') {
-        $id = $_GET['id'];
-        $stmt = $pdo->prepare("DELETE FROM senb_news WHERE id = ?");
-        $stmt->execute([$id]);
-        echo json_encode(["status" => "deleted"]);
-    }
-    ?>
-
-    Und führe folgenden SQL Befehl auf deiner Datenbank aus, um die Tabelle anzulegen:
+function addReviewEvent() {
+    syncReviewData(); 
+    extractedEventsObermini.push({
+        date: "00.00.",
+        time: "00:00",
+        type: "Neuer Termin",
+        count: "2"
+    });
+    renderReviewList();
     
-    CREATE TABLE senb_news (
-        id VARCHAR(50) PRIMARY KEY,
-        title VARCHAR(255),
-        date DATE,
-        category VARCHAR(100),
-        text TEXT,
-        image LONGTEXT
-    );
-    ========================================================================
-    -->
+    // Automatisch ganz nach unten scrollen zur neuen Box
+    const list = document.getElementById('om-review-list');
+    setTimeout(() => { list.scrollTop = list.scrollHeight; }, 50);
+}
+
+// --- PDF GENERIERUNG ---
+// --- PDF GENERIERUNG (EDLES VATIKAN DESIGN + GESCHWISTER-LOGIK) ---
+// --- PDF GENERIERUNG (VATIKAN DESIGN + UNBEGRENZTE GESCHWISTER) ---
+function generatePDF() {
+    saveMinisDB(); 
+    syncReviewData(); 
+
+    if (extractedEventsObermini.length === 0) {
+        alert("Fehler: Keine Termine zum Erstellen des Plans vorhanden.");
+        return;
+    }
+
+    let finalSchedule = [];
+    
+    extractedEventsObermini.forEach(ev => {
+        let evShortDate = ev.date.substring(0,5); 
+        
+        let available = minisDB.filter(m => {
+            if(!m.blocked) return true; 
+            return !m.blocked.includes(evShortDate); 
+        });
+
+        available = available.sort(() => 0.5 - Math.random());
+        
+        let assignedNames = "";
+
+        if (ev.count === "ALLE" || ev.count === "Alle") {
+            assignedNames = "Alle Ministranten";
+        } else {
+            let numNeeded = parseInt(ev.count) || 2;
+            let currentCount = 0;
+            let picked = [];
+
+            for (let i = 0; i < available.length; i++) {
+                if (currentCount >= numNeeded) break; 
+                
+                let m = available[i];
+                
+                // KI zählt unbegrenzte Geschwister (Sucht nach &, "und", Komma oder +)
+                let personsInEntry = (m.name.match(/&|\bund\b|,|\+/gi) || []).length + 1;
+                
+                picked.push(m.name);
+                currentCount += personsInEntry; // Das System weiß jetzt, dass hier gleich z.B. 3 Personen belegt wurden
+            }
+            assignedNames = picked.join(', ');
+        }
+        
+        if(!assignedNames) assignedNames = "--- NIEMAND VERFÜGBAR ---";
+
+        finalSchedule.push([
+            `${ev.date}\n${ev.time} Uhr`,
+            ev.type,
+            assignedNames
+        ]);
+    });
+
+    if (typeof window.jspdf === 'undefined') {
+        alert("Fehler: PDF Bibliothek konnte nicht geladen werden.");
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setDrawColor(212, 175, 55); 
+    doc.setLineWidth(1.2);
+    doc.line(105, 12, 105, 22); 
+    doc.line(102, 15, 108, 15); 
+
+    doc.setFont("times", "bold");
+    doc.setTextColor(139, 0, 0); 
+    doc.setFontSize(24);
+    doc.text("Dienstplan der Ministranten", 105, 32, { align: "center" });
+    
+    doc.setFont("times", "italic");
+    doc.setFontSize(14);
+    doc.setTextColor(80, 80, 80);
+    doc.text("Katholische Kirchengemeinde St. Otmar, Weigheim", 105, 40, { align: "center" });
+
+    doc.setLineWidth(0.5);
+    doc.line(20, 45, 190, 45);
+
+    let now = new Date().toLocaleDateString('de-DE');
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Generiert am: ${now}`, 190, 52, { align: "right" });
+
+    doc.autoTable({
+        startY: 56,
+        head: [['Datum & Uhrzeit', 'Anlass / Gottesdienst', 'Eingeteilte Ministranten']],
+        body: finalSchedule,
+        theme: 'grid', 
+        styles: { 
+            font: 'times', fontSize: 12, cellPadding: 7, valign: 'middle',
+            textColor: [40, 40, 40], lineColor: [212, 175, 55], lineWidth: 0.2
+        },
+        headStyles: { 
+            fillColor: [139, 0, 0], textColor: [255, 235, 180], fontStyle: 'bold', fontSize: 13, halign: 'center'
+        },
+        columnStyles: {
+            0: { cellWidth: 35, fontStyle: 'bold', halign: 'center' },
+            1: { cellWidth: 'auto' },
+            2: { cellWidth: 80, fontStyle: 'bold', textColor: [139, 0, 0] } 
+        },
+        alternateRowStyles: { fillColor: [253, 251, 247] }
+    });
+
+    const finalY = doc.lastAutoTable.finalY || 50;
+    doc.setFontSize(11);
+    doc.setFont("times", "italic");
+    doc.setTextColor(100, 100, 100);
+    doc.text("Solltest du verhindert sein, kümmere dich bitte selbstständig um Ersatz.", 105, finalY + 12, { align: "center" });
+    
+    doc.setFont("times", "bolditalic");
+    doc.setTextColor(139, 0, 0);
+    doc.text("Gelobt sei Jesus Christus. In Ewigkeit, Amen.", 105, finalY + 19, { align: "center" });
+
+    doc.save('Dienstplan_Otmar.pdf');
+}
+
+// --- DOKUMENTE UPLOAD FÜR GEMEINDEN (OBERMINI FEATURE) ---
+function publishPlan() {
+    const parish = document.getElementById('upload-parish').value;
+    const month = document.getElementById('upload-month').value;
+    const fileInput = document.getElementById('upload-pdf-file');
+    const statusEl = document.getElementById('upload-status');
+
+    if (!fileInput.files.length) {
+        statusEl.innerHTML = "<span class='text-red-500'>Bitte wähle eine PDF-Datei aus!</span>";
+        statusEl.classList.remove('hidden');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    if (file.type !== "application/pdf") {
+        statusEl.innerHTML = "<span class='text-red-500'>Es sind nur PDF-Dateien erlaubt!</span>";
+        statusEl.classList.remove('hidden');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64PDF = e.target.result;
+        const linkId = `link-${parish}-${month}`;
+        const textId = `text-${parish}-${month}`;
+        
+        try {
+            // Plan lokal im Browser-Speicher hinterlegen (simuliert eine Datenbank)
+            localStorage.setItem(linkId, base64PDF);
+            
+            // Link direkt in der Ansicht der normalen Minis anpassen
+            const targetLink = document.getElementById(linkId);
+            const targetText = document.getElementById(textId);
+            if (targetLink && targetText) {
+                targetLink.href = base64PDF;
+                targetLink.download = `Dienstplan_${parish}_${month}.pdf`;
+                if(!targetText.innerText.includes("(Neu)")) targetText.innerText += " (Neu!)";
+            }
+
+            statusEl.innerHTML = `<span class='text-green-600'><i class="fa-solid fa-check mr-1"></i> Plan erfolgreich veröffentlicht!</span>`;
+            statusEl.classList.remove('hidden');
+            fileInput.value = ""; // Feld wieder leeren
+        } catch (err) {
+            statusEl.innerHTML = "<span class='text-red-500'>Fehler: Datei zu groß für lokalen Speicher.</span>";
+            statusEl.classList.remove('hidden');
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+// Stellt hochgeladene Pläne beim Neuladen der Seite wieder her
+function restoreUploadedPlans() {
+    const ids = [
+        'link-franziskus-aktuell', 'link-franziskus-naechster',
+        'link-himmelfahrt-aktuell', 'link-himmelfahrt-naechster',
+        'link-otmar-aktuell', 'link-otmar-naechster',
+        'link-anna-aktuell', 'link-anna-naechster',
+        'link-georg-aktuell', 'link-georg-naechster'
+    ];
+    ids.forEach(id => {
+        const storedData = localStorage.getItem(id);
+        if (storedData) {
+            const linkEl = document.getElementById(id);
+            const textEl = document.getElementById(id.replace("link-", "text-"));
+            if (linkEl) {
+                linkEl.href = storedData;
+                linkEl.download = `Neuer_Dienstplan.pdf`;
+                if (textEl && !textEl.innerText.includes("(Neu)")) textEl.innerText += " (Neu!)";
+            }
+        }
+    });
+}
+// Einmal ausführen, sobald die Webseite lädt
+document.addEventListener("DOMContentLoaded", restoreUploadedPlans);
+    </script>
 </body>
 </html>
