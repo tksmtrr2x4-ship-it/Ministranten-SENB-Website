@@ -1,0 +1,13 @@
+{
+  "name": "minis-neckar-baar",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "mongodb": "^6.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.9",
+    "cors": "^2.8.5"
+  }
+}
