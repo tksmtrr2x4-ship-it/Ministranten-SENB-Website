@@ -1,44 +1,29 @@
-import { MongoClient } from 'mongodb';
-import jwt from 'jsonwebtoken';
+import { getDb } from "./lib/db.js";
+import { requireRole } from "./lib/session.js";
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).end();
+  if (req.method !== "POST") return res.status(405).end();
 
-    // Sicherheit: Prüfe JWT Token
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ error: 'Nicht autorisiert' });
-    
-    try {
-        jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET);
-    } catch (e) {
-        return res.status(401).json({ error: 'Token ungültig' });
+  const session = requireRole(req, ["admin"]);
+  if (!session) return res.status(403).json({ error: "Nicht autorisiert" });
+
+  const db = await getDb();
+
+  try {
+    const { action, payload } = req.body || {};
+
+    if (action === "save_news") {
+      await db.collection("news").insertOne({ ...payload, timestamp: Date.now() });
+      return res.status(200).json({ success: true });
     }
 
-    const client = new MongoClient(process.env.MONGODB_URI);
-    await client.connect();
-    const db = client.db('minis_db');
-
-    try {
-        const { action, payload } = req.body;
-
-        if (action === 'save_news') {
-            await db.collection('news').insertOne({
-                ...payload,
-                timestamp: Date.now()
-            });
-            res.status(200).json({ success: true });
-        } 
-        else if (action === 'save_settings') {
-            await db.collection('settings').updateOne(
-                { id: 'general' }, 
-                { $set: payload }, 
-                { upsert: true }
-            );
-            res.status(200).json({ success: true });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    } finally {
-        await client.close();
+    if (action === "save_settings") {
+      await db.collection("settings").updateOne({ id: "general" }, { $set: payload }, { upsert: true });
+      return res.status(200).json({ success: true });
     }
+
+    return res.status(400).json({ error: "Unbekannte Aktion" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 }

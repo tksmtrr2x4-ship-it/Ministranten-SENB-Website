@@ -1,419 +1,133 @@
-<!DOCTYPE html>
-<html lang="de" class="antialiased">
+<!doctype html>
+<html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ministranten Neckar-Baar</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            darkMode: 'media',
-            theme: {
-                extend: {
-                    colors: { churchRed: '#b91c1c', churchGold: '#f59e0b' },
-                    animation: { 'blob': 'blob 7s infinite' },
-                    keyframes: {
-                        blob: {
-                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-                            '100%': { transform: 'translate(0px, 0px) scale(1)' }
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .glass {
-            background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
-        }
-        @media (prefers-color-scheme: dark) {
-            .glass {
-                background: rgba(30, 30, 30, 0.6);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            }
-        }
-        .page-section { display: none; opacity: 0; transition: opacity 0.4s ease; }
-        .page-section.active { display: block; opacity: 1; }
-        body { background-color: #f3f4f6; color: #1f2937; }
-        @media (prefers-color-scheme: dark) { body { background-color: #0f172a; color: #f8fafc; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ministranten &amp; KJS Neckar-Baar</title>
+<meta name="description" content="Ministrantinnen und Ministranten sowie die Katholische Jugend Schwenningen (KJS) der Seelsorgeeinheit Neckar-Baar. Mini werden, Ansprechpersonen finden, anmelden.">
+<link rel="icon" href="/assets/img/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/assets/img/favicon-512.png" sizes="512x512" type="image/png">
+<link rel="apple-touch-icon" href="/assets/img/favicon-180.png">
+<link rel="stylesheet" href="/assets/css/styles.css">
 </head>
-<body class="relative overflow-hidden h-screen flex">
+<body>
+<a class="skip-link" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <div class="site-header__brand">
+    <span class="site-header__logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M6.5 8.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>
+    <h1 class="site-header__title">Ministranten &amp; KJS<small>Seelsorgeeinheit Neckar-Baar</small></h1>
+  </div>
+  <div class="ornament-divider ornament-divider--dark" role="presentation">
+    <span class="ornament-divider__line"></span>
+    <span class="ornament-divider__cross"><svg viewBox="0 0 24 24"><path d="M12 3v18M6.5 8.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>
+    <span class="ornament-divider__line"></span>
+  </div>
+  <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menü</button>
+  <nav class="site-nav" id="site-nav" aria-label="Hauptnavigation">
+    <ul class="site-nav__list">
+      <li><a href="/" aria-current="page">Startseite</a></li>
+      <li><a href="/ministrieren">Ministrieren</a></li>
+      <li><a href="/kjs">KJS</a></li>
+      <li><a href="/gemeinden">Gemeinden</a></li>
+      <li><a href="/oberminis">Oberminis</a></li>
+      <li><a href="/termine">Termine</a></li>
+      <li><a href="/kontakt">Kontakt</a></li>
+      <li class="site-nav__cta"><a href="/anmeldung">Anmelden</a></li>
+    </ul>
+  </nav>
+</header>
 
-    <!-- Animierte Hintergrund-Blobs (Liquid Glass Effekt) -->
-    <div class="fixed top-0 left-0 w-96 h-96 bg-churchRed rounded-full mix-blend-multiply filter blur-[100px] opacity-30 animate-blob z-[-1] dark:opacity-20"></div>
-    <div class="fixed top-1/4 right-0 w-96 h-96 bg-churchGold rounded-full mix-blend-multiply filter blur-[100px] opacity-30 animate-blob animation-delay-2000 z-[-1] dark:opacity-20"></div>
-    <div class="fixed bottom-0 left-1/3 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 animate-blob animation-delay-4000 z-[-1] dark:opacity-20"></div>
+<main id="main">
 
-    <!-- Sidebar / Navigation -->
-    <aside id="sidebar" class="glass w-72 h-[96%] m-4 rounded-3xl hidden md:flex flex-col z-50 transition-transform duration-300">
-        <div class="p-8 text-center border-b border-gray-200/30 dark:border-gray-700/30">
-            <h1 class="font-bold text-2xl">Minis <br><span class="text-churchRed dark:text-red-400">Neckar-Baar</span></h1>
-        </div>
-        <nav class="flex flex-col py-6 px-4 space-y-2 flex-grow overflow-y-auto">
-            <button onclick="navigate('home')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-white/40 dark:hover:bg-white/10 transition flex items-center font-semibold"><i class="fa-solid fa-house w-6"></i> Startseite</button>
-            <button onclick="navigate('news')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-white/40 dark:hover:bg-white/10 transition flex items-center font-semibold"><i class="fa-solid fa-newspaper w-6"></i> Neuigkeiten</button>
-            <button onclick="navigate('mitmachen')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-white/40 dark:hover:bg-white/10 transition flex items-center font-semibold"><i class="fa-solid fa-hands-holding-child w-6"></i> Mitmachen</button>
-            <button onclick="navigate('kontakt')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-white/40 dark:hover:bg-white/10 transition flex items-center font-semibold"><i class="fa-solid fa-envelope w-6"></i> Kontakt</button>
-        </nav>
-        
-        <!-- NEU: Sichtbarer Admin Button -->
-        <div class="p-4 border-t border-gray-200/30 dark:border-gray-700/30">
-            <a href="#admin" class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-white/10 transition text-center text-sm font-bold flex items-center justify-center opacity-80">
-                <i class="fa-solid fa-gear mr-2"></i> CMS Login
-            </a>
-        </div>
-    </aside>
-
-    <!-- Main Content Area -->
-    <div class="flex-1 h-full overflow-y-auto p-4 md:p-8 scroll-smooth" id="main-scroll">
-        
-        <!-- Mobile Header -->
-        <div class="md:hidden glass rounded-2xl p-4 mb-4 flex justify-between items-center sticky top-0 z-40">
-            <span class="font-bold text-lg">Minis <span class="text-churchRed">NB</span></span>
-            <button onclick="document.getElementById('sidebar').classList.toggle('hidden')" class="text-2xl"><i class="fa-solid fa-bars"></i></button>
-        </div>
-
-        <!-- 1. HOME -->
-        <section id="home" class="page-section active">
-            <div class="glass rounded-3xl p-10 md:p-20 text-center relative overflow-hidden mb-8 shadow-2xl">
-                <div class="relative z-10">
-                    <h2 class="text-4xl md:text-6xl font-extrabold mb-6">Glaube. Gemeinschaft. <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-churchRed to-churchGold">Action.</span></h2>
-                    <p class="text-xl md:text-2xl mb-8 opacity-80">Willkommen bei den Ministranten der SE Neckar-Baar.</p>
-                    <button onclick="navigate('mitmachen')" class="bg-gradient-to-r from-churchRed to-red-600 text-white font-bold py-4 px-8 rounded-full shadow-lg transform hover:scale-105 transition">Jetzt Ministrant werden!</button>
-                </div>
-            </div>
-            <div class="glass rounded-3xl p-8 mb-8 text-center border-l-4 border-l-churchGold">
-                <i class="fa-solid fa-book-bible text-3xl text-churchGold mb-4"></i>
-                <p id="bible-quote" class="text-xl italic font-serif opacity-90">Lade heutiges Zitat...</p>
-                <p id="bible-ref" class="text-sm mt-2 font-bold opacity-60"></p>
-            </div>
-        </section>
-
-        <!-- 2. NEWS -->
-        <section id="news" class="page-section">
-            <div class="mb-10 text-center">
-                <h2 class="text-4xl font-bold mb-2">Neuigkeiten</h2>
-                <p class="opacity-70">Aktuelles aus der Pfarrei.</p>
-            </div>
-            <div id="news-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="text-center col-span-full py-10"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>
-            </div>
-        </section>
-
-        <!-- 3. MITMACHEN -->
-        <section id="mitmachen" class="page-section">
-            <div class="glass rounded-3xl p-8 md:p-12 max-w-4xl mx-auto">
-                <h2 class="text-3xl font-bold mb-6 text-center">Werde Teil des Teams!</h2>
-                <p class="text-center mb-8 opacity-80">Lade dir das Anmeldeformular herunter oder schreib uns eine Nachricht.</p>
-                <a id="download-pdf-btn" href="#" target="_blank" class="block w-full text-center bg-gray-900 dark:bg-white dark:text-black text-white font-bold py-4 rounded-xl mb-8 transition hover:opacity-80">
-                    <i class="fa-solid fa-file-pdf mr-2"></i> Anmeldeformular (PDF) laden
-                </a>
-            </div>
-        </section>
-
-        <!-- 4. KONTAKT -->
-        <section id="kontakt" class="page-section">
-            <div class="glass rounded-3xl p-8 md:p-12 max-w-2xl mx-auto">
-                <h2 class="text-3xl font-bold mb-6">Schreib uns</h2>
-                <form id="contact-form" class="space-y-4">
-                    <input type="text" id="c-name" placeholder="Dein Name" required class="w-full bg-white/50 dark:bg-black/50 border border-gray-300 dark:border-gray-600 rounded-xl p-4 outline-none focus:ring-2 focus:ring-churchRed">
-                    <input type="email" id="c-email" placeholder="Deine E-Mail" required class="w-full bg-white/50 dark:bg-black/50 border border-gray-300 dark:border-gray-600 rounded-xl p-4 outline-none focus:ring-2 focus:ring-churchRed">
-                    <textarea id="c-msg" rows="4" placeholder="Deine Nachricht..." required class="w-full bg-white/50 dark:bg-black/50 border border-gray-300 dark:border-gray-600 rounded-xl p-4 outline-none focus:ring-2 focus:ring-churchRed"></textarea>
-                    <button type="submit" id="c-btn" class="w-full bg-churchRed text-white font-bold py-4 rounded-xl shadow-lg hover:bg-red-800 transition">Senden</button>
-                </form>
-            </div>
-        </section>
-
-        <!-- 5. ADMIN LOGIN -->
-        <section id="admin-login" class="page-section">
-            <div class="min-h-[80vh] flex items-center justify-center">
-                <div class="glass rounded-3xl p-10 w-full max-w-md shadow-2xl relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-churchRed to-churchGold"></div>
-                    <div class="text-center mb-8 mt-4">
-                        <i class="fa-solid fa-shield-halved text-5xl text-churchRed mb-4"></i>
-                        <h2 class="text-3xl font-bold">CMS Backend</h2>
-                        <p class="text-sm opacity-60">Bitte Zugangsdaten eingeben</p>
-                    </div>
-                    <form id="admin-login-form" class="space-y-6">
-                        <div>
-                            <label class="block text-sm font-bold mb-2 opacity-80">Benutzername</label>
-                            <input type="text" id="cms-user" required class="w-full bg-white/50 dark:bg-black/50 border border-gray-300 dark:border-gray-600 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-churchRed">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold mb-2 opacity-80">Passwort</label>
-                            <input type="password" id="cms-pw" required class="w-full bg-white/50 dark:bg-black/50 border border-gray-300 dark:border-gray-600 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-churchRed">
-                        </div>
-                        <p id="login-error" class="text-red-500 text-sm font-bold hidden text-center">Zugangsdaten falsch!</p>
-                        <button type="submit" id="cms-login-btn" class="w-full bg-gray-900 dark:bg-white text-white dark:text-black font-bold py-4 rounded-xl shadow-lg transition hover:scale-[1.02]">Einloggen</button>
-                    </form>
-                </div>
-            </div>
-        </section>
-
-        <!-- 6. ADMIN DASHBOARD -->
-        <section id="admin-dashboard" class="page-section">
-            <div class="glass rounded-3xl p-8 mb-8">
-                <div class="flex justify-between items-center mb-8 border-b border-gray-200 dark:border-gray-700 pb-4">
-                    <h2 class="text-3xl font-bold"><i class="fa-solid fa-pen-to-square text-churchRed mr-2"></i> Website verwalten</h2>
-                    <button onclick="logoutCMS()" class="bg-red-100 text-red-600 px-4 py-2 rounded-xl font-bold hover:bg-red-200 transition"><i class="fa-solid fa-right-from-bracket mr-2"></i> Logout</button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- News -->
-                    <div class="bg-white/40 dark:bg-black/40 p-6 rounded-2xl border border-gray-200 dark:border-gray-700">
-                        <h3 class="text-xl font-bold mb-4">News veröffentlichen</h3>
-                        <input type="text" id="news-title" placeholder="Titel des Artikels" class="w-full bg-white/60 dark:bg-black/60 rounded-xl p-4 mb-3 outline-none">
-                        <input type="file" id="news-img" accept="image/*" class="w-full bg-white/60 dark:bg-black/60 rounded-xl p-4 mb-3 text-sm">
-                        <textarea id="news-text" rows="5" placeholder="Artikeltext..." class="w-full bg-white/60 dark:bg-black/60 rounded-xl p-4 mb-3 outline-none"></textarea>
-                        <button onclick="saveNews()" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold shadow-lg">Speichern & Hochladen</button>
-                    </div>
-
-                    <!-- Einstellungen -->
-                    <div class="bg-white/40 dark:bg-black/40 p-6 rounded-2xl border border-gray-200 dark:border-gray-700">
-                        <h3 class="text-xl font-bold mb-4">Einstellungen</h3>
-                        <label class="text-xs font-bold opacity-60 ml-1">E-Mail für das Kontaktformular</label>
-                        <input type="email" id="set-email" placeholder="z.B. pfarramt@kirche.de" class="w-full bg-white/60 dark:bg-black/60 rounded-xl p-4 mb-4 outline-none">
-                        
-                        <label class="text-xs font-bold opacity-60 ml-1">Link zum PDF (Ministrant werden)</label>
-                        <input type="text" id="set-pdf" placeholder="https://..." class="w-full bg-white/60 dark:bg-black/60 rounded-xl p-4 mb-6 outline-none">
-                        
-                        <button onclick="saveSettings()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg">Einstellungen speichern</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
+  <section class="hero">
+    <div class="hero__grid">
+      <div class="hero__media">
+        <video autoplay muted loop playsinline preload="metadata"
+               poster="/assets/img/willkommen-poster.jpg"
+               aria-label="Illustration eines Ministranten, der ein Weihrauchfass schwenkt und winkt.">
+          <source src="/assets/video/willkommen.webm" type="video/webm">
+          <source src="/assets/video/willkommen.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="hero__text">
+        <p class="eyebrow">Willkommen</p>
+        <h2>Schön, dass du da bist.</h2>
+        <p>Hier findest du alles, um bei den Ministrantinnen und Ministranten oder der KJS unserer Seelsorgeeinheit mitzumachen – und wie du dich anmelden kannst.</p>
+      </div>
     </div>
+  </section>
 
-    <!-- ================= JAVASCRIPT LOGIK ================= -->
-    <script>
-        // NAVIGATION & HASH-ROUTING
-        function navigate(pageId) {
-            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            if(window.innerWidth < 768) document.getElementById('sidebar').classList.add('hidden');
-            
-            // Wenn man normal navigiert, den Hash (falls vorhanden) entfernen
-            if(pageId !== 'admin-login' && pageId !== 'admin-dashboard') {
-                history.pushState("", document.title, window.location.pathname + window.location.search);
-            }
-        }
+  <section class="section-tight">
+    <div class="wrap prose">
+      <p>Ministrieren heißt: beim Gottesdienst mit anpacken – Kerzen tragen, das Buch halten, Weihrauch schwenken, dem Priester zur Hand gehen. Man macht das nicht allein, sondern in einer festen Gruppe mit Kindern und Jugendlichen aus der eigenen Gemeinde. Wer mag, ist danach auch bei der KJS dabei: Freizeiten, Zeltlager, Gruppenstunden, gemeinsame Aktionen über das Ministrieren hinaus.</p>
+    </div>
+  </section>
 
-        function checkUrlForAdmin() {
-            if(window.location.hash === '#admin') {
-                if(sessionStorage.getItem('cms_token')) navigate('admin-dashboard');
-                else navigate('admin-login');
-            }
-        }
+  <div class="wrap">
+    <div class="ornament-divider" role="presentation">
+      <span class="ornament-divider__line"></span>
+      <span class="ornament-divider__cross"><svg viewBox="0 0 24 24"><path d="M12 3v18M6.5 8.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>
+      <span class="ornament-divider__line"></span>
+    </div>
+  </div>
 
-        window.addEventListener('hashchange', checkUrlForAdmin);
+  <section>
+    <div class="wrap">
+      <div class="paths">
+        <div class="paths__item">
+          <h3>Mini werden</h3>
+          <p>Wie das geht, was du mitbringen musst und ab wann du dabei sein kannst.</p>
+          <a class="button" href="/ministrieren">Mehr erfahren</a>
+        </div>
+        <div class="paths__item">
+          <h3>Zur KJS</h3>
+          <p>Freizeiten, Zeltlager und Gruppenstunden der Katholischen Jugend Schwenningen.</p>
+          <a class="button" href="/kjs">Zur KJS</a>
+        </div>
+        <div class="paths__item">
+          <h3>Unsere Oberminis</h3>
+          <p>Wer die Ministrantengruppen in den Gemeinden leitet und wen du fragen kannst.</p>
+          <a class="button" href="/oberminis">Ansprechpersonen</a>
+        </div>
+      </div>
+    </div>
+  </section>
 
-        // DATEN LADEN (Frontend)
-        async function loadData() {
-            try {
-                const res = await fetch('/api/public');
-                const data = await res.json();
-                
-                if(data.quote) {
-                    document.getElementById('bible-quote').innerText = `"${data.quote.text}"`;
-                    document.getElementById('bible-ref').innerText = `- ${data.quote.ref} -`;
-                }
+  <div class="wrap">
+    <div class="ornament-divider" role="presentation">
+      <span class="ornament-divider__line"></span>
+      <span class="ornament-divider__cross"><svg viewBox="0 0 24 24"><path d="M12 3v18M6.5 8.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>
+      <span class="ornament-divider__line"></span>
+    </div>
+  </div>
 
-                if(data.settings) {
-                    if(data.settings.pdfUrl) {
-                        document.getElementById('download-pdf-btn').href = data.settings.pdfUrl;
-                        document.getElementById('set-pdf').value = data.settings.pdfUrl;
-                    }
-                    if(data.settings.contactEmail) {
-                        document.getElementById('set-email').value = data.settings.contactEmail;
-                    }
-                }
+  <section>
+    <div class="wrap prose">
+      <p class="eyebrow">Unsere Gemeinden</p>
+      <h2>Die Seelsorgeeinheit Neckar-Baar</h2>
+      <ul class="gemeinden-list">
+        <li><span>St. Franziskus</span><span class="ort">VS-Schwenningen</span></li>
+        <li><span>Mariä Himmelfahrt</span><span class="ort">VS-Schwenningen</span></li>
+        <li><span>St. Georg</span><span class="ort">VS-Mühlhausen</span></li>
+        <li><span>St. Anna</span><span class="ort">Tuningen</span></li>
+        <li><span>St. Otmar</span><span class="ort">VS-Weigheim</span></li>
+      </ul>
+      <p><a class="text-link" href="/gemeinden">Alle Gemeinden im Überblick</a></p>
+    </div>
+  </section>
 
-                const newsGrid = document.getElementById('news-grid');
-                if(!data.news || data.news.length === 0) {
-                    newsGrid.innerHTML = '<p class="col-span-full text-center opacity-60">Keine Neuigkeiten.</p>';
-                } else {
-                    newsGrid.innerHTML = data.news.map(n => `
-                        <div class="glass rounded-2xl overflow-hidden flex flex-col transform hover:-translate-y-2 transition duration-300">
-                            ${n.image ? `<img src="${n.image}" class="h-48 w-full object-cover">` : ''}
-                            <div class="p-6 flex-grow">
-                                <p class="text-xs text-churchGold font-bold mb-2">${new Date(n.timestamp).toLocaleDateString()}</p>
-                                <h3 class="font-bold text-xl mb-2">${n.title}</h3>
-                                <p class="opacity-80 text-sm whitespace-pre-wrap">${n.text}</p>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-            } catch(e) {
-                console.log("Daten konnten nicht geladen werden.");
-            }
-        }
+</main>
 
-        // KONTAKTFORMULAR SENDEN
-        document.getElementById('contact-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('c-btn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sende...';
-            btn.disabled = true;
-            
-            try {
-                await fetch('/api/contact', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: 'Kontakt',
-                        name: document.getElementById('c-name').value,
-                        email: document.getElementById('c-email').value,
-                        message: document.getElementById('c-msg').value
-                    })
-                });
-                btn.innerHTML = 'Erfolgreich gesendet!';
-                btn.classList.replace('bg-churchRed', 'bg-green-600');
-                e.target.reset();
-            } catch(error) {
-                btn.innerHTML = 'Fehler aufgetreten!';
-            }
-            
-            setTimeout(() => { 
-                btn.innerHTML = 'Senden'; 
-                btn.classList.replace('bg-green-600', 'bg-churchRed'); 
-                btn.disabled = false;
-            }, 3000);
-        });
-
-        // CMS: BILD-KOMPRIMIERUNG (Spart den kostenlosen Speicherplatz)
-        function compressImage(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 800; // Verkleinert automatisch
-                        const scaleSize = MAX_WIDTH / img.width;
-                        canvas.width = MAX_WIDTH;
-                        canvas.height = img.height * scaleSize;
-                        
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // 70% Quali JPEG
-                    };
-                };
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        // CMS: LOGIN
-        document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('cms-login-btn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Prüfe...';
-            
-            try {
-                const res = await fetch('/api/auth', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        username: document.getElementById('cms-user').value, 
-                        password: document.getElementById('cms-pw').value 
-                    })
-                });
-                const data = await res.json();
-                
-                if(data.token) {
-                    sessionStorage.setItem('cms_token', data.token);
-                    document.getElementById('login-error').classList.add('hidden');
-                    document.getElementById('admin-login-form').reset();
-                    navigate('admin-dashboard');
-                } else {
-                    document.getElementById('login-error').classList.remove('hidden');
-                }
-            } catch (err) {
-                document.getElementById('login-error').innerText = "Serverfehler!";
-                document.getElementById('login-error').classList.remove('hidden');
-            }
-            btn.innerHTML = 'Einloggen';
-        });
-
-        function logoutCMS() {
-            sessionStorage.removeItem('cms_token');
-            navigate('admin-login');
-        }
-
-        // CMS: NEWS SPEICHERN
-        async function saveNews() {
-            const title = document.getElementById('news-title').value;
-            const text = document.getElementById('news-text').value;
-            const file = document.getElementById('news-img').files[0];
-            
-            if(!title || !text) return alert("Titel und Text benötigt.");
-            
-            let imageBase64 = null;
-            if(file) imageBase64 = await compressImage(file);
-
-            const res = await fetch('/api/admin', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + sessionStorage.getItem('cms_token')
-                },
-                body: JSON.stringify({
-                    action: 'save_news',
-                    payload: { title, text, image: imageBase64 }
-                })
-            });
-
-            if(res.ok) {
-                alert("News erfolgreich veröffentlicht!");
-                document.getElementById('news-title').value = '';
-                document.getElementById('news-text').value = '';
-                document.getElementById('news-img').value = '';
-                loadData(); 
-            } else {
-                alert("Fehler (Sitzung abgelaufen?)");
-                logoutCMS();
-            }
-        }
-
-        // CMS: EINSTELLUNGEN SPEICHERN
-        async function saveSettings() {
-            const res = await fetch('/api/admin', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + sessionStorage.getItem('cms_token')
-                },
-                body: JSON.stringify({
-                    action: 'save_settings',
-                    payload: { 
-                        contactEmail: document.getElementById('set-email').value,
-                        pdfUrl: document.getElementById('set-pdf').value
-                    }
-                })
-            });
-            
-            if(res.ok) {
-                alert("Einstellungen gespeichert!");
-                loadData();
-            }
-        }
-
-        // INIT
-        document.addEventListener('DOMContentLoaded', () => {
-            loadData();
-            checkUrlForAdmin();
-        });
-    </script>
+<footer class="site-footer">
+  <p class="site-footer__meta">Ministrantinnen und Ministranten sowie Katholische Jugend Schwenningen (KJS) der Seelsorgeeinheit Neckar-Baar, Dekanat Rottweil, Diözese Rottenburg-Stuttgart. Träger: <span class="placeholder">[TRÄGER einsetzen]</span>.</p>
+  <ul class="site-footer__links">
+    <li><a href="https://senb.de" rel="noopener">senb.de</a></li>
+    <li><a href="/impressum">Impressum</a></li>
+    <li><a href="/datenschutz">Datenschutz</a></li>
+    <li><a href="/kontakt">Kontakt</a></li>
+  </ul>
+  <p class="site-footer__social">Instagram: <a href="https://instagram.com/minis_senb" rel="noopener">@minis_senb</a> · <a href="https://instagram.com/kjs_nb" rel="noopener">@kjs_nb</a></p>
+</footer>
+<script src="/assets/js/site.js" defer></script>
 </body>
 </html>

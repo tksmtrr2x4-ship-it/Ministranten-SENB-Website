@@ -1,0 +1,236 @@
+<!--
+  TODO vor Veröffentlichung / bei jeder Änderung prüfen:
+  - Für jede minderjährige Person braucht abgebildeter voller Name UND Foto eine
+    schriftliche Einwilligung der Sorgeberechtigten (ab ca. 14 Jahren zusätzlich
+    der/des Jugendlichen selbst). Ohne dokumentierte Einwilligung: nur Vorname,
+    kein Foto (data-photo-consent="false" data-name-form="vorname" unten lassen).
+  - Aktuell ist für ALLE Personen unten der sichere Standard gesetzt (nur Vorname,
+    kein Foto), weil noch keine dokumentierten Einwilligungen vorliegen. Erst nach
+    Einholung der Einwilligung pro Person auf vollen Namen/Foto umstellen.
+  - Keine direkten Kontaktdaten (E-Mail, Telefon) von minderjährigen Personen auf
+    dieser Seite. Kontakt läuft ausschließlich über die erwachsene Ansprechperson
+    oder das Pfarrbüro.
+  - Fotos vor dem Hochladen von EXIF-Daten befreien (kein GPS, keine Kamera-Seriennummer).
+-->
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oberminis – Ministranten &amp; KJS Neckar-Baar</title>
+<meta name="description" content="Oberministrantinnen und Oberministranten sowie Ansprechpersonen je Gemeinde.">
+<link rel="icon" href="/assets/img/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/assets/img/favicon-180.png">
+<link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <div class="site-header__brand">
+    <span class="site-header__logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M6.5 8.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>
+    <h1 class="site-header__title">Ministranten &amp; KJS<small>Seelsorgeeinheit Neckar-Baar</small></h1>
+  </div>
+  <div class="ornament-divider ornament-divider--dark" role="presentation">
+    <span class="ornament-divider__line"></span>
+    <span class="ornament-divider__cross"><svg viewBox="0 0 24 24"><path d="M12 3v18M6.5 8.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>
+    <span class="ornament-divider__line"></span>
+  </div>
+  <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menü</button>
+  <nav class="site-nav" id="site-nav" aria-label="Hauptnavigation">
+    <ul class="site-nav__list">
+      <li><a href="/">Startseite</a></li>
+      <li><a href="/ministrieren">Ministrieren</a></li>
+      <li><a href="/kjs">KJS</a></li>
+      <li><a href="/gemeinden">Gemeinden</a></li>
+      <li><a href="/oberminis" aria-current="page">Oberminis</a></li>
+      <li><a href="/termine">Termine</a></li>
+      <li><a href="/kontakt">Kontakt</a></li>
+      <li class="site-nav__cta"><a href="/anmeldung">Anmelden</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main id="main">
+  <section>
+    <div class="wrap prose">
+      <p class="eyebrow">Wer wir sind</p>
+      <h2>Oberminis &amp; Ansprechpersonen</h2>
+      <p>Jede Gemeinde hat ihre eigenen Oberministrantinnen und Oberministranten – sie leiten die Gruppenstunden und sind erste Ansprechpersonen unter den Minis. Für alles Organisatorische gibt es zusätzlich je Gemeinde eine erwachsene Ansprechperson.</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap">
+
+      <div class="parish-block">
+        <h3>St. Franziskus &amp; Mariä Himmelfahrt <span class="field__hint">– VS-Schwenningen</span></h3>
+        <p class="field__hint">Eine Kirchengemeinde, zwei eigenständige Mini-Gruppen.</p>
+
+        <h4 class="subheading">St. Franziskus</h4>
+        <div class="people-grid parish-block__leads">
+          <div class="person" data-photo-consent="false" data-name-form="vorname">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">F</span>
+            <p class="person__name">Franziska</p>
+            <p class="person__role">Obermini</p>
+          </div>
+          <div class="person" data-photo-consent="false" data-name-form="vorname">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">P</span>
+            <p class="person__name">Paula</p>
+            <p class="person__role">Obermini</p>
+          </div>
+          <div class="person" data-photo-consent="false" data-name-form="vorname">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">V</span>
+            <p class="person__name">Vincent</p>
+            <p class="person__role">Obermini</p>
+          </div>
+        </div>
+        <div class="contact-block">
+          <div class="person">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">N</span>
+            <span>
+              <p class="person__name no-margin">Nicole Tischler-Hauser</p>
+              <p class="person__role">Ansprechperson St. Franziskus – Kontakt über <a class="text-link" href="/kontakt">Kontaktformular</a> oder Pfarrbüro</p>
+            </span>
+          </div>
+        </div>
+
+        <h4 class="subheading">Mariä Himmelfahrt</h4>
+        <div class="people-grid parish-block__leads">
+          <div class="person" data-photo-consent="false" data-name-form="vorname">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">L</span>
+            <p class="person__name">Lukrezia</p>
+            <p class="person__role">Obermini</p>
+          </div>
+          <div class="person" data-photo-consent="false" data-name-form="vorname">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">M</span>
+            <p class="person__name">Melissa</p>
+            <p class="person__role">Obermini</p>
+          </div>
+          <div class="person" data-photo-consent="false" data-name-form="vorname">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">V</span>
+            <p class="person__name">Vincent</p>
+            <p class="person__role">Obermini</p>
+          </div>
+          <div class="person" data-photo-consent="false" data-name-form="vorname">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">L</span>
+            <p class="person__name">Lara</p>
+            <p class="person__role">Obermini</p>
+          </div>
+        </div>
+        <div class="contact-block">
+          <div class="person">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">M</span>
+            <span>
+              <p class="person__name no-margin">Miriam Raudszus</p>
+              <p class="person__role">Ansprechperson Mariä Himmelfahrt – Kontakt über <a class="text-link" href="/kontakt">Kontaktformular</a> oder Pfarrbüro</p>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="wrap wrap--flush">
+        <div class="ornament-divider" role="presentation">
+          <span class="ornament-divider__line"></span>
+          <span class="ornament-divider__cross"><svg viewBox="0 0 24 24"><path d="M12 3v18M6.5 8.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>
+          <span class="ornament-divider__line"></span>
+        </div>
+      </div>
+
+      <div class="parish-block">
+        <h3>St. Georg <span class="field__hint">– VS-Mühlhausen</span></h3>
+        <div class="people-grid parish-block__leads">
+          <div class="person" data-photo-consent="false" data-name-form="vorname">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">R</span>
+            <p class="person__name">Rafael</p>
+            <p class="person__role">Obermini</p>
+          </div>
+        </div>
+        <div class="contact-block">
+          <div class="person">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">I</span>
+            <span>
+              <p class="person__name no-margin">Ines Frech</p>
+              <p class="person__role">Ansprechperson St. Georg – Kontakt über <a class="text-link" href="/kontakt">Kontaktformular</a> oder Pfarrbüro</p>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="wrap wrap--flush">
+        <div class="ornament-divider" role="presentation">
+          <span class="ornament-divider__line"></span>
+          <span class="ornament-divider__cross"><svg viewBox="0 0 24 24"><path d="M12 3v18M6.5 8.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>
+          <span class="ornament-divider__line"></span>
+        </div>
+      </div>
+
+      <div class="parish-block">
+        <h3>St. Anna <span class="field__hint">– Tuningen</span></h3>
+        <div class="people-grid parish-block__leads">
+          <div class="person" data-photo-consent="false" data-name-form="vorname">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">S</span>
+            <p class="person__name">Simon</p>
+            <p class="person__role">Obermini</p>
+          </div>
+          <div class="person" data-photo-consent="false" data-name-form="vorname">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">K</span>
+            <p class="person__name">Katharina</p>
+            <p class="person__role">Obermini</p>
+          </div>
+        </div>
+        <div class="contact-block">
+          <div class="person">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">L</span>
+            <span>
+              <p class="person__name no-margin">Lucia Feuerstein</p>
+              <p class="person__role">Ansprechperson St. Anna – Kontakt über <a class="text-link" href="/kontakt">Kontaktformular</a> oder Pfarrbüro</p>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="wrap wrap--flush">
+        <div class="ornament-divider" role="presentation">
+          <span class="ornament-divider__line"></span>
+          <span class="ornament-divider__cross"><svg viewBox="0 0 24 24"><path d="M12 3v18M6.5 8.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>
+          <span class="ornament-divider__line"></span>
+        </div>
+      </div>
+
+      <div class="parish-block">
+        <h3>St. Otmar <span class="field__hint">– VS-Weigheim</span></h3>
+        <div class="people-grid parish-block__leads">
+          <div class="person" data-photo-consent="false" data-name-form="vorname">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">J</span>
+            <p class="person__name">Jill</p>
+            <p class="person__role">Obermini</p>
+          </div>
+        </div>
+        <div class="contact-block">
+          <div class="person">
+            <span class="person__photo person__photo--placeholder" aria-hidden="true">T</span>
+            <span>
+              <p class="person__name no-margin">Thomas Hils</p>
+              <p class="person__role">Ansprechperson St. Otmar – Kontakt über <a class="text-link" href="/kontakt">Kontaktformular</a> oder Pfarrbüro</p>
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p class="site-footer__meta">Ministrantinnen und Ministranten sowie Katholische Jugend Schwenningen (KJS) der Seelsorgeeinheit Neckar-Baar, Dekanat Rottweil, Diözese Rottenburg-Stuttgart. Träger: <span class="placeholder">[TRÄGER einsetzen]</span>.</p>
+  <ul class="site-footer__links">
+    <li><a href="https://senb.de" rel="noopener">senb.de</a></li>
+    <li><a href="/impressum">Impressum</a></li>
+    <li><a href="/datenschutz">Datenschutz</a></li>
+    <li><a href="/kontakt">Kontakt</a></li>
+  </ul>
+  <p class="site-footer__social">Instagram: <a href="https://instagram.com/minis_senb" rel="noopener">@minis_senb</a> · <a href="https://instagram.com/kjs_nb" rel="noopener">@kjs_nb</a></p>
+</footer>
+<script src="/assets/js/site.js" defer></script>
+</body>
+</html>

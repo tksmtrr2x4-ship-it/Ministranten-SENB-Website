@@ -1,0 +1,579 @@
+/* ==========================================================================
+   Ministranten & KJS Seelsorgeeinheit Neckar-Baar
+   Design: ruhig, autoritativ, gedrucktes Papier statt Kachel-Karten.
+   Eigene Schriften, keine Fremd-Requests. Siehe /README.md.
+   ========================================================================== */
+
+/* ---- Schriften (selbst gehostet, SIL OFL) ---- */
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/ebgaramond-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/ebgaramond-400-italic.woff2") format("woff2");
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/ebgaramond-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/ebgaramond-700-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/sourceserif4-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/sourceserif4-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/inter-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/inter-500-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/inter-600-normal.woff2") format("woff2");
+}
+
+/* ---- Farbtoken ---- */
+:root {
+  --tinte: #12233f;
+  --tinte-hell: #24406b;
+  --gold: #a8823c;
+  --gold-hell: #d9bc7a;
+  --pergament: #faf7f0;
+  --papier: #ffffff;
+  --rot: #8c2f2f;
+  --grau: #5a5f6a;
+
+  --font-display: "EB Garamond", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-body: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --font-utility: "Inter", "Segoe UI", system-ui, sans-serif;
+
+  --step--1: 0.9375rem;   /* 15px */
+  --step-0: 1.0625rem;    /* 17px */
+  --step-1: 1.25rem;      /* 20px */
+  --step-2: 1.5625rem;    /* 25px */
+  --step-3: 2rem;         /* 32px */
+  --step-4: 2.75rem;      /* 44px */
+  --step-5: 3.75rem;      /* 60px */
+
+  --content-max: 46rem;
+  --page-max: 76rem;
+}
+
+/* ---- Reset ---- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--pergament);
+  color: var(--tinte);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+img, video { max-width: 100%; display: block; }
+a { color: inherit; }
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 0.6em;
+  color: var(--tinte);
+}
+h1 { font-size: var(--step-5); font-weight: 500; }
+h2 { font-size: var(--step-3); }
+h3 { font-size: var(--step-2); }
+p { margin: 0 0 1.1em; }
+p:last-child { margin-bottom: 0; }
+
+/* Sichtbarer Fokus überall – Tastaturnavigation */
+a:focus-visible, button:focus-visible, input:focus-visible,
+textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  background: var(--tinte);
+  color: var(--pergament);
+  padding: 0.8em 1.2em;
+  z-index: 999;
+  font-family: var(--font-utility);
+  font-weight: 600;
+  text-decoration: none;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+/* ---- Layout ---- */
+.wrap {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+.prose {
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+/* ---- Kopfbereich ---- */
+.site-header {
+  background: var(--tinte);
+  color: var(--pergament);
+  padding: 2.5rem 1.5rem 0;
+  text-align: center;
+}
+.site-header__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  max-width: 40rem;
+  margin: 0 auto;
+}
+.site-header__logo {
+  width: 64px;
+  height: 64px;
+  border: 1.5px solid var(--gold-hell);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-hell);
+}
+.site-header__logo svg { width: 34px; height: 34px; }
+.site-header__title {
+  font-size: var(--step-3);
+  color: var(--papier);
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+.site-header__title small {
+  display: block;
+  font-family: var(--font-utility);
+  font-weight: 500;
+  font-size: var(--step--1);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-hell);
+  margin-top: 0.5rem;
+}
+
+/* Goldene Doppellinie mit Kreuz-Ornament – Signature-Element */
+.ornament-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  margin: 1.75rem auto;
+  max-width: 30rem;
+  padding: 0 1.5rem;
+}
+.ornament-divider__line { flex: 1 1 auto; height: 5px; position: relative; }
+.ornament-divider__line::before, .ornament-divider__line::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--gold);
+}
+.ornament-divider__line::before { top: 0; }
+.ornament-divider__line::after { top: 4px; }
+.ornament-divider--dark .ornament-divider__line::before,
+.ornament-divider--dark .ornament-divider__line::after { background: var(--gold-hell); }
+.ornament-divider__cross { color: var(--gold); flex: none; line-height: 0; }
+.ornament-divider--dark .ornament-divider__cross { color: var(--gold-hell); }
+.ornament-divider__cross svg { width: 18px; height: 18px; }
+
+/* ---- Hauptnavigation ---- */
+.site-nav {
+  border-top: 1px solid rgba(217, 188, 122, 0.35);
+  margin-top: 2rem;
+}
+.site-nav__list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem 1.75rem;
+  margin: 0;
+  padding: 0.9rem 1rem;
+  font-family: var(--font-utility);
+  font-size: var(--step--1);
+  font-weight: 500;
+}
+.site-nav__list a {
+  text-decoration: none;
+  color: var(--gold-hell);
+  padding: 0.35em 0.1em;
+  border-bottom: 1px solid transparent;
+  transition: color 150ms ease, border-color 150ms ease;
+}
+.site-nav__list a:hover { color: var(--papier); border-color: var(--gold); }
+.site-nav__list a[aria-current="page"] { color: var(--papier); border-color: var(--gold); }
+.site-nav__cta a {
+  color: var(--papier);
+  border: 1px solid var(--gold-hell);
+  padding: 0.5em 1em;
+  border-radius: 2px;
+}
+.site-nav__cta a:hover { background: var(--gold-hell); color: var(--tinte); border-color: var(--gold-hell); }
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: 1px solid var(--gold-hell);
+  color: var(--papier);
+  font-family: var(--font-utility);
+  font-size: var(--step--1);
+  padding: 0.5em 1em;
+  margin: 0 auto 1rem;
+  border-radius: 2px;
+}
+
+@media (max-width: 700px) {
+  .nav-toggle { display: inline-block; }
+  .site-nav { display: none; }
+  .site-nav.is-open { display: block; }
+  .site-nav__list { flex-direction: column; align-items: center; gap: 0.75rem; padding-bottom: 1.5rem; }
+}
+
+/* ---- Hero (Startseite) ---- */
+.hero {
+  padding: 3rem 1.5rem 1rem;
+}
+.hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 22rem) 1fr;
+  gap: 2.5rem;
+  align-items: center;
+  max-width: var(--page-max);
+  margin: 0 auto;
+}
+@media (max-width: 780px) {
+  .hero__grid { grid-template-columns: 1fr; text-align: center; }
+}
+.hero__media {
+  background: var(--tinte);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--gold);
+}
+.hero__media video, .hero__media img { width: 100%; height: auto; }
+.hero__text .eyebrow { margin-bottom: 0.5rem; }
+.hero__text p { font-size: var(--step-1); color: var(--grau); }
+
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-utility);
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/* ---- Sektionen ---- */
+section { padding: 2.75rem 0; }
+.section-tight { padding: 1.5rem 0; }
+
+/* Drei-Wege-Block */
+.paths {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+@media (max-width: 780px) {
+  .paths { grid-template-columns: 1fr; }
+}
+.paths__item {
+  padding: 1.75rem 2rem;
+  text-align: center;
+  border-left: 1px solid rgba(168, 130, 60, 0.35);
+}
+.paths__item:first-child { border-left: none; }
+@media (max-width: 780px) {
+  .paths__item { border-left: none; border-top: 1px solid rgba(168, 130, 60, 0.35); }
+  .paths__item:first-child { border-top: none; }
+}
+.paths__item h3 { margin-bottom: 0.5rem; }
+.paths__item p { color: var(--grau); font-size: var(--step-0); }
+.paths__item a.button { margin-top: 0.75rem; }
+
+/* Gemeinden-Liste */
+.gemeinden-list { list-style: none; margin: 0; padding: 0; }
+.gemeinden-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(90, 95, 106, 0.2);
+  font-size: var(--step-1);
+}
+.gemeinden-list li:first-child { border-top: 1px solid rgba(90, 95, 106, 0.2); }
+.gemeinden-list .ort { color: var(--grau); font-family: var(--font-utility); font-size: var(--step--1); }
+
+/* ---- Buttons & Links ---- */
+.button {
+  display: inline-block;
+  font-family: var(--font-utility);
+  font-weight: 600;
+  font-size: var(--step--1);
+  text-decoration: none;
+  padding: 0.85em 1.6em;
+  border: 1px solid var(--tinte);
+  color: var(--tinte);
+  border-radius: 2px;
+  background: transparent;
+  transition: background 150ms ease, color 150ms ease;
+  cursor: pointer;
+}
+.button:hover { background: var(--tinte); color: var(--papier); }
+.button--primary { background: var(--tinte); color: var(--papier); }
+.button--primary:hover { background: var(--tinte-hell); border-color: var(--tinte-hell); }
+.button--gold { border-color: var(--gold); color: var(--tinte); }
+.button--gold:hover { background: var(--gold); color: var(--papier); }
+.text-link { color: var(--tinte-hell); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- Formulare ---- */
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 2.25rem;
+}
+fieldset legend {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  color: var(--tinte);
+  padding: 0 0 0.4rem;
+  border-bottom: 1px solid rgba(168, 130, 60, 0.4);
+  width: 100%;
+  margin-bottom: 1.25rem;
+}
+.field { margin-bottom: 1.25rem; }
+.field label, .field .field__legend {
+  display: block;
+  font-family: var(--font-utility);
+  font-weight: 600;
+  font-size: var(--step--1);
+  margin-bottom: 0.4rem;
+  color: var(--tinte);
+}
+.field__hint { font-family: var(--font-utility); font-size: var(--step--1); color: var(--grau); margin-top: 0.4rem; }
+.field input[type="text"],
+.field input[type="email"],
+.field input[type="tel"],
+.field input[type="date"],
+.field input[type="number"],
+.field select,
+.field textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  padding: 0.7em 0.85em;
+  border: 1px solid var(--grau);
+  border-radius: 2px;
+  background: var(--papier);
+  color: var(--tinte);
+}
+.field input:invalid:not(:placeholder-shown) { border-color: var(--rot); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.field-row--3 { grid-template-columns: 2fr 1fr 1.4fr; }
+@media (max-width: 640px) {
+  .field-row, .field-row--3 { grid-template-columns: 1fr; }
+}
+.radio-group { display: flex; flex-wrap: wrap; gap: 1.25rem; font-family: var(--font-utility); font-size: var(--step-0); }
+.radio-group label { display: flex; align-items: center; gap: 0.5em; font-weight: 400; }
+
+.checkbox-field {
+  display: flex;
+  gap: 0.75em;
+  align-items: flex-start;
+  padding: 1rem;
+  border: 1px solid rgba(90, 95, 106, 0.25);
+  border-radius: 3px;
+  margin-bottom: 1rem;
+  background: var(--papier);
+}
+.checkbox-field input[type="checkbox"] { margin-top: 0.3em; width: 1.1em; height: 1.1em; flex: none; }
+.checkbox-field .checkbox-field__text { font-family: var(--font-utility); font-size: var(--step--1); color: var(--tinte); }
+.checkbox-field .checkbox-field__text strong { color: var(--tinte); }
+.checkbox-field--optional { border-left: 3px solid var(--gold); }
+.checkbox-field--required { border-left: 3px solid var(--rot); }
+
+.notice {
+  font-family: var(--font-utility);
+  font-size: var(--step--1);
+  padding: 0.9em 1.1em;
+  border-left: 3px solid var(--gold);
+  background: rgba(168, 130, 60, 0.08);
+  color: var(--tinte);
+  margin: 1rem 0 1.5rem;
+}
+.notice--error {
+  border-left-color: var(--rot);
+  background: rgba(140, 47, 47, 0.08);
+}
+.notice--success {
+  border-left-color: #3d6a4a;
+  background: rgba(61, 106, 74, 0.08);
+}
+
+/* Honeypot – für echte Nutzer unsichtbar, für Formular-Bots vorhanden */
+.hp-field {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Rechtsprüfungs-Hinweis auf Impressum/Datenschutz */
+.legal-banner {
+  background: var(--rot);
+  color: var(--papier);
+  font-family: var(--font-utility);
+  font-size: var(--step--1);
+  padding: 1rem 1.25rem;
+  border-radius: 2px;
+  margin-bottom: 2rem;
+}
+
+/* Platzhalter-Markierung */
+.placeholder { color: var(--rot); font-weight: 600; }
+
+/* ---- Personenkarten (Oberminis) ---- */
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 2rem 1.5rem;
+}
+.person {
+  text-align: center;
+}
+.person__photo {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--tinte);
+  margin: 0 0 0.85rem;
+  border: 1px solid var(--gold);
+}
+.person__photo--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-hell);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+}
+.person__name { font-family: var(--font-display); font-size: var(--step-1); margin-bottom: 0.1rem; }
+.person__role { font-family: var(--font-utility); font-size: var(--step--1); color: var(--grau); }
+.parish-block { margin-bottom: 3rem; }
+.parish-block__leads { margin-bottom: 2rem; }
+.contact-block {
+  border-top: 1px solid rgba(90, 95, 106, 0.25);
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+}
+.contact-block .person { display: flex; align-items: center; gap: 1rem; text-align: left; }
+.contact-block .person__photo { width: 3.5rem; margin: 0; }
+
+/* ---- Fußbereich ---- */
+.site-footer {
+  background: var(--tinte);
+  color: var(--gold-hell);
+  padding: 3rem 1.5rem 2.5rem;
+  margin-top: 3rem;
+  text-align: center;
+  font-family: var(--font-utility);
+  font-size: var(--step--1);
+}
+.site-footer a { color: var(--papier); text-decoration: none; }
+.site-footer a:hover { color: var(--gold-hell); text-decoration: underline; }
+.site-footer__links {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1.5rem;
+  padding: 0;
+  margin: 0 0 1.5rem;
+}
+.site-footer__meta { color: rgba(217, 188, 122, 0.7); max-width: 40rem; margin: 0 auto 1rem; }
+.site-footer__social { margin-top: 1rem; }
+
+/* ---- Tabellen / Utility ---- */
+table { border-collapse: collapse; width: 100%; margin: 1.5rem 0; font-size: var(--step--1); }
+th, td { text-align: left; padding: 0.6em 0.8em; border-bottom: 1px solid rgba(90, 95, 106, 0.25); vertical-align: top; }
+th { font-family: var(--font-utility); color: var(--grau); font-weight: 600; }
+
+.kicker-list { padding-left: 1.2em; }
+.kicker-list li { margin-bottom: 0.5em; }
+.kicker-list--errors { display: inline-block; text-align: left; }
+
+/* ---- Utilities (statt Inline-Styles, für eine CSP ohne unsafe-inline) ---- */
+.text-center { text-align: center; }
+.prose--narrow { max-width: 26rem; }
+.field-span-2 { grid-column: span 2; }
+.wrap--flush { padding: 0; }
+.no-margin { margin-bottom: 0; }
+.subheading {
+  font-family: var(--font-utility);
+  font-size: var(--step--1);
+  color: var(--grau);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 1.5rem 0 0.75rem;
+}
+.contact-block .person__photo--placeholder { font-size: var(--step-1); }
+
+/* Bewegung nur dezent, außer Begrüßung; reduzierte Bewegung respektieren */
+* { transition-duration: 150ms; }
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

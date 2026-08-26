@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verwaltung – Interner Bereich</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/assets/img/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <div class="site-header__brand">
+    <span class="site-header__logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M6.5 8.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>
+    <h1 class="site-header__title">Ministranten &amp; KJS<small>Interner Bereich</small></h1>
+  </div>
+  <div class="ornament-divider ornament-divider--dark" role="presentation">
+    <span class="ornament-divider__line"></span>
+    <span class="ornament-divider__cross"><svg viewBox="0 0 24 24"><path d="M12 3v18M6.5 8.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>
+    <span class="ornament-divider__line"></span>
+  </div>
+  <nav class="site-nav" aria-label="Interner Bereich">
+    <ul class="site-nav__list">
+      <li><a href="/intern/dashboard.html" aria-current="page">Neuigkeiten &amp; Einstellungen</a></li>
+      <li><a href="/intern/plaene.html">Ministrantenpläne</a></li>
+      <li><a href="#" id="logout-link">Abmelden</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main id="main" data-protected-endpoint="/api/public">
+  <section class="section-tight">
+    <div class="wrap">
+      <h2>News veröffentlichen</h2>
+      <form id="news-form">
+        <div class="field">
+          <label for="news-title">Titel</label>
+          <input type="text" id="news-title" required>
+        </div>
+        <div class="field">
+          <label for="news-text">Text</label>
+          <textarea id="news-text" rows="5" required></textarea>
+        </div>
+        <div class="field">
+          <label for="news-img">Bild (optional)</label>
+          <input type="file" id="news-img" accept="image/*">
+        </div>
+        <button type="submit" class="button button--primary">Veröffentlichen</button>
+      </form>
+
+      <div class="ornament-divider" role="presentation">
+        <span class="ornament-divider__line"></span>
+        <span class="ornament-divider__cross"><svg viewBox="0 0 24 24"><path d="M12 3v18M6.5 8.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>
+        <span class="ornament-divider__line"></span>
+      </div>
+
+      <h2>Einstellungen</h2>
+      <form id="settings-form">
+        <div class="field">
+          <label for="set-email">Kontakt-E-Mail (Kontaktformular)</label>
+          <input type="email" id="set-email" placeholder="pfarramt@kirche.de">
+        </div>
+        <button type="submit" class="button">Speichern</button>
+      </form>
+
+      <p id="dashboard-status" class="notice" hidden></p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p class="site-footer__meta">Interner Bereich – nicht für Suchmaschinen bestimmt.</p>
+</footer>
+<script src="/assets/js/intern.js" defer></script>
+<script src="/assets/js/intern-dashboard.js" defer></script>
+</body>
+</html>

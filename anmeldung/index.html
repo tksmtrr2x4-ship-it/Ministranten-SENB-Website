@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anmeldung – Ministranten &amp; KJS Neckar-Baar</title>
+<meta name="description" content="Als Ministrantin, Ministrant oder bei der KJS anmelden.">
+<link rel="icon" href="/assets/img/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/assets/img/favicon-180.png">
+<link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <div class="site-header__brand">
+    <span class="site-header__logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M6.5 8.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>
+    <h1 class="site-header__title">Ministranten &amp; KJS<small>Seelsorgeeinheit Neckar-Baar</small></h1>
+  </div>
+  <div class="ornament-divider ornament-divider--dark" role="presentation">
+    <span class="ornament-divider__line"></span>
+    <span class="ornament-divider__cross"><svg viewBox="0 0 24 24"><path d="M12 3v18M6.5 8.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>
+    <span class="ornament-divider__line"></span>
+  </div>
+  <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menü</button>
+  <nav class="site-nav" id="site-nav" aria-label="Hauptnavigation">
+    <ul class="site-nav__list">
+      <li><a href="/">Startseite</a></li>
+      <li><a href="/ministrieren">Ministrieren</a></li>
+      <li><a href="/kjs">KJS</a></li>
+      <li><a href="/gemeinden">Gemeinden</a></li>
+      <li><a href="/oberminis">Oberminis</a></li>
+      <li><a href="/termine">Termine</a></li>
+      <li><a href="/kontakt">Kontakt</a></li>
+      <li class="site-nav__cta"><a href="/anmeldung" aria-current="page">Anmelden</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main id="main">
+  <section class="section-tight">
+    <div class="wrap prose">
+      <p class="eyebrow">Anmeldung</p>
+      <h2>Mini oder KJS werden</h2>
+      <p>Bitte füll das Formular vollständig aus. Nach dem Absenden schicken wir eine Bestätigungs-E-Mail an die angegebene Adresse – erst nach dem Klick darauf ist die Anmeldung eingegangen. Bist du noch nicht volljährig, brauchen wir zusätzlich eine schriftliche Einverständniserklärung deiner Eltern zum Ausdrucken; die schicken wir mit der Bestätigungs-E-Mail mit.</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap prose">
+      <form id="antrag-form" method="POST" action="/api/register" novalidate>
+
+        <p class="hp-field" aria-hidden="true">
+          <label for="f-website">Website (bitte freilassen)</label>
+          <input type="text" id="f-website" name="website" tabindex="-1" autocomplete="off">
+        </p>
+        <input type="hidden" name="loadedAt" id="f-loaded-at" value="">
+
+        <fieldset>
+          <legend>Antragsart</legend>
+          <div class="field">
+            <div class="radio-group" role="radiogroup" aria-required="true">
+              <label><input type="radio" name="antragsart" value="mini" required> Ministrant/in</label>
+              <label><input type="radio" name="antragsart" value="kjs"> KJS</label>
+              <label><input type="radio" name="antragsart" value="beides"> Beides</label>
+            </div>
+          </div>
+          <div class="checkbox-field checkbox-field--optional">
+            <input type="checkbox" id="f-kjs" name="kjsMitgliedschaft" value="ja">
+            <span class="checkbox-field__text">
+              <strong>Mitgliedschaft in der KJS</strong><br>
+              <span id="kjs-hint">Freiwillig – unabhängig von einer Mini-Anmeldung.</span>
+            </span>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Zur Person</legend>
+          <div class="field-row">
+            <div class="field">
+              <label for="f-vorname">Vorname</label>
+              <input type="text" id="f-vorname" name="vorname" required autocomplete="given-name">
+            </div>
+            <div class="field">
+              <label for="f-nachname">Nachname</label>
+              <input type="text" id="f-nachname" name="nachname" required autocomplete="family-name">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="f-geburtsdatum">Geburtsdatum</label>
+            <input type="date" id="f-geburtsdatum" name="geburtsdatum" required autocomplete="bday">
+            <p class="field__hint" id="minderjaehrig-hint">Bitte gib dein Geburtsdatum an, damit wir wissen, ob wir die Einwilligung deiner Eltern brauchen.</p>
+          </div>
+
+          <div class="field">
+            <label for="f-gemeinde">Wunsch-Gemeinde</label>
+            <select id="f-gemeinde" name="gemeinde" required autocomplete="off">
+              <option value="" disabled selected>Bitte auswählen</option>
+              <option value="st-franziskus">St. Franziskus – VS-Schwenningen</option>
+              <option value="maria-himmelfahrt">Mariä Himmelfahrt – VS-Schwenningen</option>
+              <option value="st-georg">St. Georg – VS-Mühlhausen</option>
+              <option value="st-anna">St. Anna – Tuningen</option>
+              <option value="st-otmar">St. Otmar – VS-Weigheim</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <div class="field field-span-2">
+              <label for="f-strasse">Straße und Hausnummer</label>
+              <input type="text" id="f-strasse" name="strasse" required autocomplete="street-address">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="f-plz">Postleitzahl</label>
+              <input type="text" id="f-plz" name="plz" inputmode="numeric" pattern="[0-9]{5}" required autocomplete="postal-code">
+            </div>
+            <div class="field">
+              <label for="f-ort">Ort</label>
+              <input type="text" id="f-ort" name="ort" required autocomplete="address-level2">
+            </div>
+          </div>
+
+          <div class="field">
+            <span class="field__legend">Erstkommunion (Voraussetzung fürs Ministrieren)</span>
+            <div class="radio-group" role="radiogroup">
+              <label><input type="radio" name="erstkommunion" value="ja" required> bereits empfangen</label>
+              <label><input type="radio" name="erstkommunion" value="geplant"> geplant</label>
+              <label><input type="radio" name="erstkommunion" value="nein"> nein</label>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-erstkommunion-datum">Falls geplant: an welchem Datum (ungefähr)</label>
+            <input type="date" id="f-erstkommunion-datum" name="erstkommunionDatum">
+          </div>
+
+          <div class="field">
+            <label for="f-koerpergroesse">Körpergröße in cm (optional)</label>
+            <input type="number" id="f-koerpergroesse" name="koerpergroesseCm" min="80" max="220">
+            <p class="field__hint">Hilft uns, ein passendes Gewand bereitzulegen.</p>
+          </div>
+        </fieldset>
+
+        <fieldset id="block-sorgeberechtigt">
+          <legend>Sorgeberechtigte Person</legend>
+          <p class="field__hint">Bitte ausfüllen, wenn die angemeldete Person zum Zeitpunkt der Anmeldung noch nicht volljährig ist.</p>
+          <div class="field-row">
+            <div class="field">
+              <label for="f-sb-name">Name</label>
+              <input type="text" id="f-sb-name" name="sorgeberechtigtName" autocomplete="name">
+            </div>
+            <div class="field">
+              <label for="f-sb-email">E-Mail-Adresse</label>
+              <input type="email" id="f-sb-email" name="sorgeberechtigtEmail" autocomplete="email">
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-sb-telefon">Telefonnummer</label>
+            <input type="tel" id="f-sb-telefon" name="sorgeberechtigtTelefon" autocomplete="tel">
+          </div>
+
+          <div class="field">
+            <label for="f-kind-email">E-Mail-Adresse des Kindes (freiwillig)</label>
+            <input type="email" id="f-kind-email" name="kindEmail" autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="f-kind-telefon">Telefonnummer des Kindes (freiwillig)</label>
+            <input type="tel" id="f-kind-telefon" name="kindTelefon" autocomplete="tel">
+          </div>
+        </fieldset>
+
+        <fieldset id="block-eigenkontakt">
+          <legend>Kontakt</legend>
+          <p class="field__hint">Bitte ausfüllen, wenn die angemeldete Person zum Zeitpunkt der Anmeldung bereits volljährig ist.</p>
+          <div class="field-row">
+            <div class="field">
+              <label for="f-eigen-email">E-Mail-Adresse</label>
+              <input type="email" id="f-eigen-email" name="eigeneEmail" autocomplete="email">
+            </div>
+            <div class="field">
+              <label for="f-eigen-telefon">Telefonnummer</label>
+              <input type="tel" id="f-eigen-telefon" name="eigeneTelefon" autocomplete="tel">
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Einwilligungen</legend>
+
+          <div class="checkbox-field checkbox-field--required">
+            <input type="checkbox" id="f-consent-daten" name="consentDaten" value="ja" required>
+            <span class="checkbox-field__text">
+              <strong>Datenverarbeitung (erforderlich)</strong><br>
+              Ich bin einverstanden, dass die angegebenen Daten zum Zweck der Mitgliederverwaltung verarbeitet werden. Ohne diese Einwilligung kann die Anmeldung nicht bearbeitet werden.
+            </span>
+          </div>
+
+          <div class="checkbox-field checkbox-field--optional">
+            <input type="checkbox" id="f-consent-fotos" name="consentFotos" value="ja">
+            <span class="checkbox-field__text">
+              <strong>Fotoveröffentlichung (freiwillig)</strong><br>
+              Ich bin einverstanden, dass Fotos auf dieser Website und den Instagram-Kanälen der Minis und der KJS veröffentlicht werden. Diese Einwilligung kann ich jederzeit widerrufen, ohne dass daraus Nachteile entstehen. Eine Ablehnung hat ebenfalls keine Nachteile.
+            </span>
+          </div>
+
+          <div class="checkbox-field checkbox-field--optional">
+            <input type="checkbox" id="f-consent-whatsapp" name="consentWhatsapp" value="ja">
+            <span class="checkbox-field__text">
+              <strong>WhatsApp-Community (freiwillig)</strong><br>
+              Ich bin einverstanden, in die WhatsApp-Community aufgenommen zu werden. Dabei wird die angegebene Rufnummer für andere Mitglieder der Gruppe sichtbar.
+            </span>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="button button--primary">Anmeldung senden</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p class="site-footer__meta">Ministrantinnen und Ministranten sowie Katholische Jugend Schwenningen (KJS) der Seelsorgeeinheit Neckar-Baar, Dekanat Rottweil, Diözese Rottenburg-Stuttgart. Träger: <span class="placeholder">[TRÄGER einsetzen]</span>.</p>
+  <ul class="site-footer__links">
+    <li><a href="https://senb.de" rel="noopener">senb.de</a></li>
+    <li><a href="/impressum">Impressum</a></li>
+    <li><a href="/datenschutz">Datenschutz</a></li>
+    <li><a href="/kontakt">Kontakt</a></li>
+  </ul>
+  <p class="site-footer__social">Instagram: <a href="https://instagram.com/minis_senb" rel="noopener">@minis_senb</a> · <a href="https://instagram.com/kjs_nb" rel="noopener">@kjs_nb</a></p>
+</footer>
+<script src="/assets/js/site.js" defer></script>
+<script src="/assets/js/anmeldung.js" defer></script>
+</body>
+</html>
