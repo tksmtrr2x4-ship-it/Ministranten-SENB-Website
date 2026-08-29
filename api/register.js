@@ -68,7 +68,7 @@ export default async function handler(req, res) {
       title: "Nicht erlaubt",
       heading: "Diese Anfrageart wird nicht unterstützt.",
       message: "Bitte nutze das Anmeldeformular.",
-      backHref: "/anmeldung",
+      backHref: "/anmeldung/",
       backLabel: "Zur Anmeldung",
     });
   }
@@ -83,7 +83,7 @@ export default async function handler(req, res) {
   const zuSchnell = geladenVor > 0 && Date.now() - geladenVor < 3000;
   if (honeypotAusgefuellt || zuSchnell) {
     res.statusCode = 303;
-    res.setHeader("Location", "/anmeldung/eingegangen");
+    res.setHeader("Location", "/anmeldung/eingegangen/");
     return res.end();
   }
 
@@ -97,7 +97,7 @@ export default async function handler(req, res) {
       title: "Bitte kurz warten",
       heading: "Zu viele Anmeldeversuche.",
       message: "Von dieser Verbindung wurden in kurzer Zeit mehrere Anmeldungen abgeschickt. Bitte versuche es in ein paar Minuten erneut.",
-      backHref: "/anmeldung",
+      backHref: "/anmeldung/",
       backLabel: "Zurück zur Anmeldung",
     });
   }
@@ -110,7 +110,7 @@ export default async function handler(req, res) {
       title: "Bitte prüfen",
       heading: "Die Anmeldung konnte nicht gespeichert werden.",
       message: `<ul class="kicker-list kicker-list--errors">${liste}</ul>`,
-      backHref: "/anmeldung",
+      backHref: "/anmeldung/",
       backLabel: "Zurück zum Formular",
     });
   }
@@ -216,12 +216,12 @@ export default async function handler(req, res) {
       title: "E-Mail konnte nicht versendet werden",
       heading: "Die Anmeldung wurde gespeichert, die Bestätigungs-E-Mail konnte aber nicht verschickt werden.",
       message: "Bitte melde dich über die Kontaktseite, damit wir die Anmeldung manuell bestätigen können.",
-      backHref: "/kontakt",
+      backHref: "/kontakt/",
       backLabel: "Zur Kontaktseite",
     });
   }
 
   res.statusCode = 303;
-  res.setHeader("Location", "/anmeldung/eingegangen");
+  res.setHeader("Location", "/anmeldung/eingegangen/");
   res.end();
 }

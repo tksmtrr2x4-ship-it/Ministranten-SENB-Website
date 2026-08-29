@@ -1,6 +1,6 @@
 {
   "cleanUrls": true,
-  "trailingSlash": false,
+  "trailingSlash": true,
   "crons": [
     {
       "path": "/api/cron/cleanup",
@@ -27,7 +27,7 @@
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     },
     {
-      "source": "/anmeldung/(eingegangen|bestaetigt|fehler)",
+      "source": "/anmeldung/(eingegangen|bestaetigt|fehler)/",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
     }
   ]

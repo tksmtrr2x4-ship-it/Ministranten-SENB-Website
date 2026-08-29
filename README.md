@@ -36,10 +36,19 @@ ausdrücklichen Wunsch überall ausgeklammert.
   `assets/fonts/`, keine Google-Fonts-Einbindung im Browser.
 - `/api/*.js` sind Vercel-Serverless-Functions (Node, ESM). MongoDB über
   `api/lib/db.js`, Mailversand über `api/lib/mailer.js`.
-- `vercel.json` setzt `cleanUrls` (daher funktionieren Links wie `/ministrieren`
-  ohne `.html`), eine strikte Content-Security-Policy ohne `unsafe-inline`
-  (deshalb keine Inline-`<script>`/`style="..."` irgendwo im Markup) und den
-  täglichen Cron-Job für die Löschfrist.
+- Jede Seite liegt als eigener Ordner mit `index.html` (z. B. `ministrieren/index.html`),
+  genau wie schon vorher `anmeldung/`. Links zeigen entsprechend auf
+  `/ministrieren/` mit Slash. Das funktioniert auf jedem Static Host ohne
+  Sonderkonfiguration – anders als flache `ministrieren.html`-Dateien mit
+  Link auf `/ministrieren` (ohne `.html`), die nur mit Vercels `cleanUrls`
+  funktionieren und z. B. bei `python -m http.server` oder falschem
+  Vercel-Projekt-Root mit 404 fehlschlagen. Genau das war der Bug, den wir
+  gefixt haben – siehe Git-Historie.
+- `vercel.json` setzt zusätzlich `cleanUrls`/`trailingSlash: true` als Bonus
+  (fängt z. B. `/ministrieren` ohne Slash ab), eine strikte
+  Content-Security-Policy ohne `unsafe-inline` (deshalb keine
+  Inline-`<script>`/`style="..."` irgendwo im Markup) und den täglichen
+  Cron-Job für die Löschfrist.
 
 ## Die Anmeldung (Kernfunktion)
 

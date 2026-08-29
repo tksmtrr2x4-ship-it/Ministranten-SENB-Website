@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
   if (!token) {
     res.statusCode = 302;
-    res.setHeader("Location", "/anmeldung/fehler");
+    res.setHeader("Location", "/anmeldung/fehler/");
     return res.end();
   }
 
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
 
   if (!antrag || abgelaufen) {
     res.statusCode = 302;
-    res.setHeader("Location", "/anmeldung/fehler");
+    res.setHeader("Location", "/anmeldung/fehler/");
     return res.end();
   }
 
@@ -65,6 +65,6 @@ export default async function handler(req, res) {
   }
 
   res.statusCode = 302;
-  res.setHeader("Location", "/anmeldung/bestaetigt");
+  res.setHeader("Location", "/anmeldung/bestaetigt/");
   res.end();
 }

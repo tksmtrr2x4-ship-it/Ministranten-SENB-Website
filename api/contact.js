@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   const zuSchnell = geladenVor > 0 && Date.now() - geladenVor < 3000;
   if (honeypotAusgefuellt || zuSchnell) {
     res.statusCode = 303;
-    res.setHeader("Location", "/kontakt-gesendet");
+    res.setHeader("Location", "/kontakt-gesendet/");
     return res.end();
   }
 
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       title: "Bitte prüfen",
       heading: "Die Nachricht konnte nicht gesendet werden.",
       message: "Bitte fülle Name, E-Mail-Adresse und Nachricht aus.",
-      backHref: "/kontakt",
+      backHref: "/kontakt/",
       backLabel: "Zurück zum Formular",
     });
   }
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
       title: "Bitte kurz warten",
       heading: "Zu viele Nachrichten in kurzer Zeit.",
       message: "Bitte versuche es in ein paar Minuten erneut.",
-      backHref: "/kontakt",
+      backHref: "/kontakt/",
       backLabel: "Zurück zum Formular",
     });
   }
@@ -59,12 +59,12 @@ export default async function handler(req, res) {
       title: "Fehler beim Versand",
       heading: "Die Nachricht konnte nicht verschickt werden.",
       message: "Bitte versuche es später erneut oder schreibe direkt an die Ansprechperson deiner Gemeinde.",
-      backHref: "/kontakt",
+      backHref: "/kontakt/",
       backLabel: "Zurück zum Formular",
     });
   }
 
   res.statusCode = 303;
-  res.setHeader("Location", "/kontakt-gesendet");
+  res.setHeader("Location", "/kontakt-gesendet/");
   res.end();
 }
