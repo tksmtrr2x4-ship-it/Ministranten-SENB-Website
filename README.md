@@ -8,11 +8,11 @@ ausdrücklichen Wunsch überall ausgeklammert.
 
 ## Vor dem Go-Live: unbedingt lesen
 
-1. **Impressum & Datenschutz** (`impressum.html`, `datenschutz.html`) müssen von
+1. **Impressum & Datenschutz** (`impressum/index.html`, `datenschutz/index.html`) müssen von
    der Kirchengemeinde rechtlich geprüft werden. Alle `[Platzhalter]` ausfüllen,
    insbesondere Träger, Anschrift, Vertretung und die genaue Bezeichnung der
    zuständigen diözesanen Datenschutzaufsicht (beim Pfarramt erfragen).
-2. **Oberminis-Fotos/Namen** (`oberminis.html`): Aktuell zeigt die Seite für
+2. **Oberminis-Fotos/Namen** (`oberminis/index.html`): Aktuell zeigt die Seite für
    *alle* Personen nur den Vornamen und keine Fotos, weil keine dokumentierten
    Einwilligungen vorliegen. Die vorherige Version zeigte volle Namen und
    echte Fotos ohne erkennbaren Einwilligungsnachweis – das wurde bewusst
@@ -34,8 +34,17 @@ ausdrücklichen Wunsch überall ausgeklammert.
   enhancement), keine Frameworks, keine Build-Schritte nötig.
 - Schriften (EB Garamond, Source Serif 4, Inter) liegen selbst gehostet unter
   `assets/fonts/`, keine Google-Fonts-Einbindung im Browser.
-- `/api/*.js` sind Vercel-Serverless-Functions (Node, ESM). MongoDB über
-  `api/lib/db.js`, Mailversand über `api/lib/mailer.js`.
+- `/api/*.js` sind Vercel-Serverless-Functions (Node, ESM) – 8 Stück
+  (`admin`, `auth`, `confirm`, `contact`, `cron/cleanup`, `plaene`, `public`,
+  `register`). **Wichtig: gemeinsam genutzter Code liegt bewusst in `/lib`
+  außerhalb von `/api`, nicht in `api/lib/`.** Vercel macht aus JEDER `.js`-Datei
+  unter `/api` eine eigene Funktion – lägen die 9 Hilfsdateien (db, mailer,
+  session, …) dort mit drin, wären es 17 „Funktionen“ statt 8, was auf dem
+  Hobby-Plan (Limit: 12) den Deploy mit „No more than 12 Serverless Functions“
+  blockiert. `package.json`/`node_modules` liegen dafür im Projekt-Wurzel-
+  verzeichnis (nicht mehr unter `api/`), damit Node-Module-Auflösung von
+  `/lib` aus funktioniert. MongoDB über `lib/db.js`, Mailversand über
+  `lib/mailer.js`.
 - Jede Seite liegt als eigener Ordner mit `index.html` (z. B. `ministrieren/index.html`),
   genau wie schon vorher `anmeldung/`. Links zeigen entsprechend auf
   `/ministrieren/` mit Slash. Das funktioniert auf jedem Static Host ohne
@@ -67,14 +76,14 @@ ausdrücklichen Wunsch überall ausgeklammert.
   schon beim reinen Absenden, weil die E-Mail-Adresse zu diesem Zeitpunkt noch
   unbestätigt (ggf. vertippt) ist.
 - Bei Minderjährigen hängt die Bestätigungsmail automatisch ein PDF
-  „Einverständniserklärung“ an (`api/lib/consentPdf.js`, erzeugt mit
+  „Einverständniserklärung“ an (`lib/consentPdf.js`, erzeugt mit
   `pdf-lib`, keine externe Vorlage nötig).
 - Löschung unbestätigter Anträge nach 30 Tagen: primär über einen
-  TTL-Index auf `antraege.createdAt` (`api/lib/db.js`), zusätzlich abgesichert
+  TTL-Index auf `antraege.createdAt` (`lib/db.js`), zusätzlich abgesichert
   durch den täglichen Cron-Job `api/cron/cleanup.js`.
 - Spam-Schutz: unsichtbares Honeypot-Feld + Mindestzeit von 3 Sekunden
   zwischen Laden und Absenden + Mongo-gestütztes IP-Rate-Limit
-  (`api/lib/rateLimit.js`). Kein reCAPTCHA/hCaptcha.
+  (`lib/rateLimit.js`). Kein reCAPTCHA/hCaptcha.
 
 ## Interner Bereich (`/intern`)
 
@@ -101,10 +110,19 @@ Upload je Gemeinde) ist bewusst noch nicht gebaut.
 ## Setup
 
 ```bash
-cd api && npm install
+npm install
 vercel dev
 ```
 
 Umgebungsvariablen wie in `.env.example` beschrieben in Vercel hinterlegen.
-MongoDB und SMTP-Anbieter mit Sitz/AV-Vertrag in der EU wählen (siehe
-`/datenschutz`).
+Mailversand ist auf Gmail (`smtp.gmail.com`) voreingestellt – dafür im
+verwendeten Gmail-Konto 2FA aktivieren und unter
+[myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+ein App-Passwort erzeugen (das normale Passwort funktioniert nicht für SMTP).
+Nur `SMTP_USER`/`SMTP_PASS` müssen gesetzt werden, siehe `.env.example`.
+
+MongoDB EU-Region wählen (siehe `/datenschutz`). Zum Hinweis dort: ein
+privates Gmail-Konto hat keinen AV-Vertrag nach KDG – nur Google Workspace
+bietet einen. Für den echten Betrieb mit Daten von Kindern vorher mit der
+Kirchengemeinde klären, ob das ausreicht oder auf Workspace/einen anderen
+EU-Anbieter mit AV-Vertrag gewechselt werden soll.

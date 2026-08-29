@@ -1,5 +1,5 @@
-import { getDb } from "./lib/db.js";
-import { requireRole } from "./lib/session.js";
+import { getDb } from "../lib/db.js";
+import { requireRole } from "../lib/session.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();

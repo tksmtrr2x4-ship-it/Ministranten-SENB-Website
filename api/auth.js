@@ -1,13 +1,13 @@
-import { verifyPassword } from "./lib/password.js";
-import { setSessionCookie, clearSessionCookie } from "./lib/session.js";
-import { getDb, ensureIndexes } from "./lib/db.js";
-import { getClientIp } from "./lib/privacy.js";
-import { checkRateLimit } from "./lib/rateLimit.js";
+import { verifyPassword } from "../lib/password.js";
+import { setSessionCookie, clearSessionCookie } from "../lib/session.js";
+import { getDb, ensureIndexes } from "../lib/db.js";
+import { getClientIp } from "../lib/privacy.js";
+import { checkRateLimit } from "../lib/rateLimit.js";
 
 // Zugangsdaten kommen ausschließlich aus Umgebungsvariablen, kein
 // Klartext-Fallback im Code. ADMIN_PASSWORD_HASH wird einmalig mit
-// node -e "console.log(require('./api/lib/password.js').hashPassword('...'))"
-// erzeugt (siehe README.md).
+// node -e "import('./lib/password.js').then(m => console.log(m.hashPassword('...')))"
+// (im Projekt-Wurzelverzeichnis ausgeführt) erzeugt, siehe README.md.
 export default async function handler(req, res) {
   if (req.method === "DELETE") {
     clearSessionCookie(res);

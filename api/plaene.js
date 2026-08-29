@@ -1,4 +1,4 @@
-import { requireRole } from "./lib/session.js";
+import { requireRole } from "../lib/session.js";
 
 // Phase-2-Modul "Ministrantenpläne" (siehe Build-Prompt Abschnitt 8): Route
 // und Rollenprüfung existieren bereits, die eigentliche Oberfläche (PDF-Upload,

@@ -1,11 +1,11 @@
 import { randomBytes } from "crypto";
-import { getDb, ensureIndexes } from "./lib/db.js";
-import { getClientIp, anonymizeIp } from "./lib/privacy.js";
-import { checkRateLimit } from "./lib/rateLimit.js";
-import { sendMail } from "./lib/mailer.js";
-import { buildConsentPdf } from "./lib/consentPdf.js";
-import { sendMessagePage } from "./lib/renderPage.js";
-import { GEMEINDEN } from "./lib/gemeinden.js";
+import { getDb, ensureIndexes } from "../lib/db.js";
+import { getClientIp, anonymizeIp } from "../lib/privacy.js";
+import { checkRateLimit } from "../lib/rateLimit.js";
+import { sendMail } from "../lib/mailer.js";
+import { buildConsentPdf } from "../lib/consentPdf.js";
+import { sendMessagePage } from "../lib/renderPage.js";
+import { GEMEINDEN } from "../lib/gemeinden.js";
 
 const CONFIRM_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 Tage, siehe §5.3
 

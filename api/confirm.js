@@ -1,6 +1,6 @@
-import { getDb } from "./lib/db.js";
-import { sendMail } from "./lib/mailer.js";
-import { GEMEINDEN } from "./lib/gemeinden.js";
+import { getDb } from "../lib/db.js";
+import { sendMail } from "../lib/mailer.js";
+import { GEMEINDEN } from "../lib/gemeinden.js";
 
 // Double-Opt-In, zweiter Schritt: der Link aus der Bestätigungs-E-Mail landet
 // hier. Erst jetzt gilt der Antrag als bestätigt, und erst jetzt informieren

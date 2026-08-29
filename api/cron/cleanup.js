@@ -1,7 +1,7 @@
-import { getDb } from "../lib/db.js";
+import { getDb } from "../../lib/db.js";
 
 // Zusätzliches Sicherheitsnetz zum TTL-Index auf antraege.createdAt
-// (siehe api/lib/db.js): löscht unbestätigte Anträge nach 30 Tagen, auch
+// (siehe lib/db.js): löscht unbestätigte Anträge nach 30 Tagen, auch
 // falls der TTL-Index z. B. wegen fehlender MongoDB-Rechte nicht greift.
 // Wird per Vercel Cron aufgerufen (siehe vercel.json) und ist gegen
 // öffentliche Aufrufe mit einem geheimen Header abgesichert.

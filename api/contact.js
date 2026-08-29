@@ -1,8 +1,8 @@
-import { getDb, ensureIndexes } from "./lib/db.js";
-import { getClientIp } from "./lib/privacy.js";
-import { checkRateLimit } from "./lib/rateLimit.js";
-import { sendMail } from "./lib/mailer.js";
-import { sendMessagePage } from "./lib/renderPage.js";
+import { getDb, ensureIndexes } from "../lib/db.js";
+import { getClientIp } from "../lib/privacy.js";
+import { checkRateLimit } from "../lib/rateLimit.js";
+import { sendMail } from "../lib/mailer.js";
+import { sendMessagePage } from "../lib/renderPage.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();

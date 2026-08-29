@@ -1,4 +1,4 @@
-import { getDb } from "./lib/db.js";
+import { getDb } from "../lib/db.js";
 
 // Öffentliche, nicht personenbezogene Daten (News-Liste, allgemeine
 // Einstellungen). Kein Aufruf externer Drittanbieter-APIs mehr – die
